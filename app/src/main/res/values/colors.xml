@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Palette MiaLifeApp: lavanda + menta, calma e rassicurante -->
+    <color name="brand">#6C5CE7</color>
+    <color name="brand_dark">#4B3FA8</color>
+    <color name="brand_soft">#EEEBFF</color>
+    <color name="mint">#2FB9A5</color>
+    <color name="mint_soft">#E3F7F3</color>
+    <color name="coral">#FF8A7A</color>
+    <color name="amber">#E9A23B</color>
+    <color name="amber_soft">#FFF4E2</color>
+    <color name="danger">#E5484D</color>
+    <color name="danger_soft">#FDECEC</color>
+    <color name="bg">#F7F6FC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="field">#FBFAFF</color>
+    <color name="outline">#E3E0F3</color>
+    <color name="ink">#211E3B</color>
+    <color name="muted">#6F6B8C</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="ok">#1F9D6B</color>
+</resources>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <group android:scaleX="0.8" android:scaleY="0.8" android:pivotX="54" android:pivotY="54">
+        <!-- cuore -->
+        <path android:fillColor="#FFFFFF"
+            android:pathData="M54,80 C41,71 31,63 31,50.5 C31,42.5 37,36.5 44.5,36.5 C48.8,36.5 52,38.6 54,41.8 C56,38.6 59.2,36.5 63.5,36.5 C71,36.5 77,42.5 77,50.5 C77,63 67,71 54,80 Z" />
+        <!-- occhi -->
+        <path android:fillColor="#4B3FA8" android:pathData="M46.5,52 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0" />
+        <path android:fillColor="#4B3FA8" android:pathData="M61.5,52 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0" />
+        <!-- sorriso -->
+        <path android:strokeColor="#4B3FA8" android:strokeWidth="2.8" android:strokeLineCap="round"
+            android:pathData="M47.5,59 Q54,65 60.5,59" />
+        <!-- guance -->
+        <path android:fillColor="#BFFF8A7A" android:pathData="M42,58.5 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0" />
+        <path android:fillColor="#BFFF8A7A" android:pathData="M66,58.5 m-2.6,0 a2.6,2.6 0 1,0 5.2,0 a2.6,2.6 0 1,0 -5.2,0" />
+        <!-- onde di segnale -->
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="3" android:strokeLineCap="round"
+            android:pathData="M76,30 A9,9 0 0,1 83,37" />
+        <path android:strokeColor="#B3FFFFFF" android:strokeWidth="3" android:strokeLineCap="round"
+            android:pathData="M77,22 A17,17 0 0,1 91,36" />
+    </group>
+</vector>

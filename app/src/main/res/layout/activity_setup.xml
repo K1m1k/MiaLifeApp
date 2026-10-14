@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/brand"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="16dp">
+        <TextView
+            android:id="@+id/stepCounter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_pill"
+            android:paddingStart="12dp"
+            android:paddingTop="4dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="4dp"
+            android:textColor="@color/white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:max="8"
+            app:indicatorColor="@color/white"
+            app:trackColor="#40FFFFFF"
+            app:trackCornerRadius="4dp"
+            app:trackThickness="6dp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+        <LinearLayout
+            android:id="@+id/stepContacts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView style="@style/H1" android:text="@string/step_contacts_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_contacts_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <EditText
+                            android:id="@+id/contact1"
+                            style="@style/Field"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:importantForAutofill="no"
+                            android:inputType="phone" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/pick1"
+                            style="@style/BtnText"
+                            android:layout_marginStart="6dp"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/contact_pick" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <EditText
+                            android:id="@+id/contact2"
+                            style="@style/Field"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:importantForAutofill="no"
+                            android:inputType="phone" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/pick2"
+                            style="@style/BtnText"
+                            android:layout_marginStart="6dp"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/contact_pick" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <EditText
+                            android:id="@+id/contact3"
+                            style="@style/Field"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:importantForAutofill="no"
+                            android:inputType="phone" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/pick3"
+                            style="@style/BtnText"
+                            android:layout_marginStart="6dp"
+                            android:layout_marginTop="10dp"
+                            android:text="@string/contact_pick" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_pin_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_pin_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView style="@style/CardTitle" android:layout_marginTop="0dp" android:text="@string/pin_hint" />
+                    <EditText
+                        android:id="@+id/pin1"
+                        style="@style/Field"
+                        android:hint="@string/pin_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="numberPassword"
+                        android:maxLength="8" />
+                    <EditText
+                        android:id="@+id/pin2"
+                        style="@style/Field"
+                        android:hint="@string/pin_confirm_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="numberPassword"
+                        android:maxLength="8" />
+                    <TextView android:id="@+id/pinKeepHint" style="@style/Status" />
+                    <TextView style="@style/CardTitle" android:layout_marginTop="18dp" android:text="@string/step_coercion_title" />
+                    <TextView style="@style/Body" android:text="@string/step_coercion_body" />
+                    <EditText
+                        android:id="@+id/coercion1"
+                        style="@style/Field"
+                        android:hint="@string/coercion_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="numberPassword"
+                        android:maxLength="8" />
+                    <EditText
+                        android:id="@+id/coercion2"
+                        style="@style/Field"
+                        android:hint="@string/coercion_confirm_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="numberPassword"
+                        android:maxLength="8" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepSeq"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_seq_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_seq_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView android:id="@+id/seqStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/seqSensitivity"
+                        style="@style/BtnSecondary" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/seqRecord"
+                        style="@style/BtnPrimary"
+                        android:text="@string/seq_record" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/seqDefault"
+                        style="@style/BtnSecondary"
+                        android:text="@string/seq_default" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/seqTest"
+                        style="@style/BtnSecondary"
+                        android:text="@string/seq_test" />
+                    <TextView android:id="@+id/seqResult" style="@style/Status" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepPerm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_perm_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_perm_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView android:id="@+id/permStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/permGrant"
+                        style="@style/BtnPrimary"
+                        android:text="@string/perm_grant" />
+                    <TextView style="@style/CardTitle" android:layout_marginTop="18dp" android:text="@string/perm_bg_title" />
+                    <TextView style="@style/Body" android:text="@string/perm_bg_body" />
+                    <TextView android:id="@+id/permBgStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/permBgGrant"
+                        style="@style/BtnSecondary"
+                        android:text="@string/perm_bg_grant" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepBattery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_battery_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_battery_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView android:id="@+id/batteryStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/batteryGrant"
+                        style="@style/BtnPrimary"
+                        android:text="@string/battery_grant" />
+                    <LinearLayout
+                        android:id="@+id/oemBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+                    <TextView style="@style/CardTitle" android:layout_marginTop="18dp" android:text="@string/battery_oem_title" />
+                        <TextView android:id="@+id/oemText" style="@style/Body" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/oemOpen"
+                        style="@style/BtnSecondary"
+                        android:text="@string/battery_oem_open" />
+                        <com.google.android.material.checkbox.MaterialCheckBox
+                            android:id="@+id/oemDone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/battery_oem_done"
+                            android:textColor="@color/ink" />
+                    </LinearLayout>
+                    <TextView style="@style/Body" android:text="@string/battery_note" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepDrive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_drive_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_drive_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView android:id="@+id/driveStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/driveConnect"
+                        style="@style/BtnPrimary"
+                        android:text="@string/drive_connect" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepLock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_lock_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_lock_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView android:id="@+id/lockStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/lockOpen"
+                        style="@style/BtnSecondary"
+                        android:text="@string/lock_open" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepVoice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_voice_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_voice_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/voiceEnable" style="@style/BtnPrimary" android:text="@string/voice_enable" />
+                    <TextView android:id="@+id/voiceStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/voiceDownload" style="@style/BtnSecondary" android:text="@string/voice_download" />
+                    <EditText
+                        android:id="@+id/voicePhrase" style="@style/Field"
+                        android:hint="@string/voice_phrase_hint"
+                        android:importantForAutofill="no" android:inputType="textNoSuggestions" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/voiceRecord" style="@style/BtnSecondary" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/voiceTest" style="@style/BtnSecondary" android:text="@string/voice_test" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/voiceThreshold" style="@style/BtnSecondary" />
+                    <TextView android:id="@+id/voiceResult" style="@style/Status" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepDone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_done_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_done_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView android:id="@+id/doneSummary" style="@style/Body" android:textColor="@color/ink" android:layout_marginTop="0dp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/doneSmsTest"
+                        style="@style/BtnSecondary"
+                        android:text="@string/done_sms_test" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:orientation="vertical"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="14dp">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/backButton"
+                style="@style/BtnSecondary"
+                android:layout_width="0dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:text="@string/setup_back" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/nextButton"
+                style="@style/BtnPrimary"
+                android:layout_width="0dp"
+                android:layout_weight="2"
+                android:text="@string/setup_next" />
+        </LinearLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/skipButton"
+            style="@style/BtnText"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/setup_skip_debug"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

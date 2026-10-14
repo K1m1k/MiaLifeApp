@@ -1,0 +1,15 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/app/build
+/captures
+.externalNativeBuild
+.cxx
+# NON committare chiavi/credenziali:
+google-services.json
+keystore.jks
+*.keystore
+secrets.properties

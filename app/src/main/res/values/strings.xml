@@ -1,0 +1,145 @@
+<resources>
+    <string name="app_name">MiaLifeApp</string>
+
+    <!-- Benvenuto -->
+    <string name="welcome_title">Ciao, sono MiaLifeApp</string>
+    <string name="welcome_subtitle">Ti accompagno con discrezione. Se sei in pericolo, chiedo aiuto per te e conservo le prove.</string>
+    <string name="welcome_warning_title">Prima di iniziare</string>
+    <string name="welcome_warning_body">L\'app ti aiuta solo se è configurata bene: segui la guida passo per passo, senza saltare nulla.\n\n• Scegli come contatti di fiducia solo persone davvero affidabili.\n• La tua sicurezza viene prima di tutto.\n• Nessuna app è infallibile: MiaLifeApp può avere difetti o non funzionare bene su alcuni modelli di telefono. Non sostituisce il 112.</string>
+    <string name="welcome_howto_title">Come funziona</string>
+    <string name="welcome_howto_body">1. Scegli fino a 3 contatti di fiducia e un PIN.\n2. Scegli la tua sequenza di colpetti sul retro del telefono.\n3. Colleghi il tuo Google Drive, dove finiranno le prove.\n4. In pericolo, batti la sequenza: lo schermo resta spento.\n5. L\'app manda un SMS con la tua posizione, registra l\'audio, lo salva sul tuo Drive e aggiorna la posizione ogni pochi minuti.</string>
+    <string name="welcome_start">Iniziamo</string>
+    <string name="welcome_crypto_title">Questo telefono non può proteggere i tuoi dati</string>
+    <string name="welcome_crypto_body">La cifratura sicura del telefono non risponde, quindi MiaLifeApp non può salvare in modo protetto i tuoi contatti e il PIN. Per la tua sicurezza l\'app non continua.\n\nProva a riavviare il telefono. Se il problema resta, questo modello non è compatibile.</string>
+
+    <!-- Configurazione guidata -->
+    <string name="setup_step_of">Passo %1$d di %2$d</string>
+    <string name="setup_back">Indietro</string>
+    <string name="setup_next">Avanti</string>
+    <string name="setup_complete">Completa la configurazione</string>
+    <string name="setup_skip_debug">Salta (solo versione di prova)</string>
+
+    <string name="step_contacts_title">Contatti di fiducia</string>
+    <string name="step_contacts_body">Riceveranno il tuo SMS di aiuto con la posizione. Inserisci almeno un numero, meglio tre. Avvisali che li hai scelti.</string>
+    <string name="contact_hint">Numero contatto %1$d</string>
+    <string name="contact_pick">Rubrica</string>
+
+    <string name="step_pin_title">Il tuo PIN</string>
+    <string name="step_pin_body">Il PIN serve per fermare un\'emergenza, disattivare la protezione o cambiare le impostazioni. Senza PIN nessuno può farlo al posto tuo. Da 4 a 8 cifre.</string>
+    <string name="pin_hint">PIN</string>
+    <string name="pin_confirm_hint">Ripeti il PIN</string>
+    <string name="pin_keep_hint">Lascia vuoto per non cambiarlo</string>
+    <string name="step_coercion_title">PIN di coercizione (consigliato)</string>
+    <string name="step_coercion_body">Se qualcuno ti costringe a fermare l\'app, inserisci questo PIN al posto di quello vero. Sullo schermo sembrerà tutto fermo, ma l\'app continuerà in segreto e avviserà i tuoi contatti che sei sotto costrizione. Deve essere diverso dal PIN.</string>
+    <string name="coercion_hint">PIN di coercizione</string>
+    <string name="coercion_confirm_hint">Ripeti il PIN di coercizione</string>
+
+    <string name="step_seq_title">La tua sequenza di colpetti</string>
+    <string name="step_seq_body">Batti con le dita sul retro del telefono. Conta il numero di colpetti e le pause, non la forza. Predefinita: 2 colpetti · pausa · 3 colpetti · pausa · 2 colpetti.\n\nScegline una che non faresti mai per caso.</string>
+    <string name="seq_record">Registra la mia sequenza</string>
+    <string name="seq_default">Usa quella predefinita</string>
+    <string name="seq_test">Prova la sequenza (non invia nulla)</string>
+    <string name="seq_current">Sequenza attuale: %1$s</string>
+
+    <string name="step_perm_title">Permessi</string>
+    <string name="step_perm_body">Ecco cosa serve e perché:\n\n• SMS: per mandare la richiesta di aiuto.\n• Posizione: per dire dove sei.\n• Microfono: per registrare l\'audio come prova.\n• Notifiche: Android le chiede per i servizi sempre attivi.</string>
+    <string name="perm_grant">Concedi i permessi</string>
+    <string name="perm_bg_title">Posizione \"Consenti sempre\" (consigliata)</string>
+    <string name="perm_bg_body">Permette di continuare a mandare la posizione anche se il telefono viene riavviato durante un\'emergenza. Nella pagina che si apre scegli \"Consenti sempre\".</string>
+    <string name="perm_bg_grant">Imposta \"Consenti sempre\"</string>
+
+    <string name="step_battery_title">Risparmio energetico</string>
+    <string name="step_battery_body">Molti telefoni spengono le app in background per risparmiare batteria. MiaLifeApp deve restare sempre sveglia, altrimenti nel momento del bisogno potrebbe non rispondere.</string>
+    <string name="battery_grant">Escludi dal risparmio energetico</string>
+    <string name="battery_oem_title">Impostazione del produttore</string>
+    <string name="battery_oem_open">Apri l\'impostazione</string>
+    <string name="battery_oem_done">Fatto, l\'ho impostata</string>
+    <string name="battery_note">Nota: per ascoltare i colpetti a schermo spento l\'app tiene sveglio il sensore. Consuma un po\' più batteria del solito: è il prezzo dell\'essere sempre pronta.</string>
+
+    <string name="step_drive_title">Google Drive</string>
+    <string name="step_drive_body">Le registrazioni e le posizioni vengono caricate sul TUO Google Drive, in una cartella chiamata \"MiaLifeApp - Prove\". Così restano al sicuro anche se il telefono viene distrutto. L\'app vede solo i file che crea lei.</string>
+    <string name="drive_connect">Collega Google Drive e prova</string>
+    <string name="drive_working">Collegamento e caricamento di prova in corso…</string>
+
+    <string name="step_lock_title">Blocco schermo e consigli</string>
+    <string name="step_lock_body">Con il blocco schermo (PIN, sequenza o impronta) chi prende il tuo telefono non può aprire le Impostazioni per disinstallare o fermare l\'app.\n\nConsigli utili:\n• Se il tuo telefono lo permette, attiva \"Richiedi sblocco per spegnere\" o \"Blocca rete e sicurezza\" (Samsung, Xiaomi, Android 15+).\n• Facoltativo: con Google Maps puoi condividere sempre la posizione con una persona di fiducia.</string>
+    <string name="lock_open">Apri impostazioni di sicurezza</string>
+
+    <string name="step_done_title">Ultimo controllo</string>
+    <string name="step_done_body">Se tutto è verde sei pronta/o. Puoi mandare un SMS di prova ai tuoi contatti, così sanno di essere stati scelti e verifichi che arrivi.</string>
+    <string name="done_sms_test">Invia SMS di prova ai contatti</string>
+
+    <!-- Principale -->
+    <string name="main_armed">Protezione attiva</string>
+    <string name="main_armed_sub">Sono in ascolto della tua sequenza. Puoi spegnere lo schermo e mettere il telefono in tasca.</string>
+    <string name="main_degraded">Protezione ridotta</string>
+    <string name="main_degraded_sub">Dopo un riavvio la registrazione audio non è disponibile. Tocca \"Riattiva completamente\".</string>
+    <string name="main_off">Protezione non attiva</string>
+    <string name="main_off_sub">Tocca il pulsante qui sotto quando esci o quando vuoi sentirti più tranquilla/o.</string>
+    <string name="main_arm">Attiva protezione</string>
+    <string name="main_rearm">Riattiva completamente</string>
+    <string name="main_disarm">Disattiva protezione</string>
+    <string name="main_checks">Controlli</string>
+    <string name="main_test_seq">Prova la sequenza</string>
+    <string name="main_test_full">Prova completa</string>
+    <string name="main_edit">Modifica configurazione</string>
+    <string name="main_howto">Come si usa</string>
+    <string name="main_howto_body">• Attiva la protezione quando esci: basta un tocco a schermo acceso.\n\n• In pericolo batti la tua sequenza sul retro del telefono, anche in tasca o in borsa. Lo schermo resta spento.\n\n• L\'app manda subito un SMS con la tua posizione, registra l\'audio a pezzi, lo carica sul tuo Drive e rimanda la posizione ogni 5 minuti.\n\n• Quando sei al sicuro apri l\'app: vedrai uno schermo nero. Tocca in basso, inserisci il PIN e l\'emergenza si ferma. I contatti ricevono \"Sono al sicuro\". L\'app torna pronta.\n\n• Se ti costringono a fermarla usa il PIN di coercizione: sembrerà ferma ma continua.\n\n• Dopo ogni riavvio del telefono apri l\'app (o tocca la notifica) per riattivare tutto.</string>
+
+    <!-- PIN -->
+    <string name="pin_dialog_title">Inserisci il PIN</string>
+    <string name="pin_wrong">PIN errato</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Annulla</string>
+
+    <!-- Schermata scura -->
+    <string name="dark_hint">···</string>
+    <string name="dark_confirm">Sono al sicuro</string>
+    <string name="dark_stopped">Fatto</string>
+    <string name="toast_need_contact">Inserisci almeno un contatto di fiducia.</string>
+    <string name="toast_test_ok">Sequenza riconosciuta ✓ (prova: non è stato inviato nulla)</string>
+
+    <!-- Notifiche -->
+    <string name="ch_service">Servizio</string>
+    <string name="ch_alerts">Avvisi</string>
+    <string name="notif_service_title">Servizio attivo</string>
+    <string name="notif_service_text">Tocca per aprire</string>
+    <string name="notif_restore_title">Protezione da riattivare</string>
+    <string name="notif_restore_text">Tocca qui per riattivare completamente MiaLifeApp.</string>
+    <string name="notif_drive_title">Google Drive da ricollegare</string>
+    <string name="notif_drive_text">Le prove restano sul telefono finché non ricolleghi Drive. Tocca qui.</string>
+
+    <!-- SMS -->
+    <string name="sms_help">AIUTO! Sono in pericolo. La mia posizione alle %1$s: %2$s</string>
+    <string name="sms_help_noloc">AIUTO! Sono in pericolo. Posizione non ancora disponibile (%1$s), arriverà a breve.</string>
+    <string name="sms_update">AGGIORNAMENTO alle %1$s, mia posizione: %2$s</string>
+    <string name="sms_update_noloc">AGGIORNAMENTO alle %1$s: posizione non disponibile. Sono ancora in emergenza.</string>
+    <string name="sms_coerced">ATTENZIONE: mi stanno costringendo a fermare l\'app. L\'emergenza continua di nascosto. Non chiamarmi: chiedi aiuto al 112.</string>
+    <string name="sms_resumed">Il mio telefono si è riavviato durante l\'emergenza: continuo a mandare la posizione.</string>
+    <string name="sms_safe">Sono al sicuro, l\'emergenza è finita (%1$s). Grazie.</string>
+    <string name="sms_test">[PROVA] MiaLifeApp: messaggio di prova, nessuna emergenza. Ti ho scelto come contatto di fiducia. Posizione alle %1$s: %2$s</string>
+    <string name="sms_test_noloc">[PROVA] MiaLifeApp: messaggio di prova, nessuna emergenza. Ti ho scelto come contatto di fiducia. Posizione non disponibile (%1$s).</string>
+    <string name="sms_signature">(messaggio automatico MiaLifeApp)</string>
+
+    <!-- Modalità appuntamento / voce -->
+    <string name="step_voice_title">Attivazione vocale (facoltativa)</string>
+    <string name="step_voice_body">Oltre ai colpetti, puoi attivare l\'aiuto con una frase scelta da te. È pensata per i momenti più a rischio e va accesa a tempo (\"Modalità appuntamento\"), perché tiene il microfono in ascolto: compare il pallino verde e consuma più batteria.\n\nScarica una volta il riconoscitore italiano, poi registra la tua frase 5 volte: l\'app imparerà sia la frase sia il suono della tua voce. Scegli una frase di 3-4 parole che puoi dire senza insospettire chi ti sta davanti.</string>
+    <string name="voice_enable">Attiva la frase vocale</string>
+    <string name="voice_disable">Disattiva la frase vocale</string>
+    <string name="voice_download">Scarica il riconoscitore italiano (una volta, ~50 MB)</string>
+    <string name="voice_downloading">Scaricamento in corso… %1$d%%</string>
+    <string name="voice_unzipping">Preparazione del modello…</string>
+    <string name="voice_phrase_hint">Scrivi qui la tua frase (3-4 parole)</string>
+    <string name="voice_record">Registra la frase (%1$d di %2$d)</string>
+    <string name="voice_recording">Di\' ora la frase…</string>
+    <string name="voice_enrolled">Frase e voce registrate ✓</string>
+    <string name="voice_test">Prova: di\' la frase (non invia nulla)</string>
+    <string name="voice_threshold">Severità voce: %1$d (tocca per cambiare)</string>
+    <string name="main_appointment">Modalità appuntamento</string>
+    <string name="appointment_active">Modalità appuntamento attiva (ascolto frase) fino alle %1$s</string>
+    <string name="appointment_pick">Per quanto tempo tenere l\'ascolto della frase?</string>
+    <string name="appointment_1h">1 ora</string>
+    <string name="appointment_2h">2 ore</string>
+    <string name="appointment_4h">4 ore</string>
+    <string name="appointment_stop">Ferma la Modalità appuntamento</string>
+</resources>

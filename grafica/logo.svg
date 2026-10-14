@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="512" height="512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E7CF8"/>
+      <stop offset="1" stop-color="#4FC7B5"/>
+    </linearGradient>
+    <clipPath id="c"><rect width="108" height="108" rx="26"/></clipPath>
+  </defs>
+  <g clip-path="url(#c)">
+    <rect width="108" height="108" fill="url(#g)"/>
+    <circle cx="86" cy="18" r="30" fill="#FFFFFF" fill-opacity="0.10"/>
+    <!-- heart -->
+    <path fill="#FFFFFF" d="M54,80 C41,71 31,63 31,50.5 C31,42.5 37,36.5 44.5,36.5 C48.8,36.5 52,38.6 54,41.8 C56,38.6 59.2,36.5 63.5,36.5 C71,36.5 77,42.5 77,50.5 C77,63 67,71 54,80 Z"/>
+    <!-- face -->
+    <circle cx="46.5" cy="52" r="2.6" fill="#4B3FA8"/>
+    <circle cx="61.5" cy="52" r="2.6" fill="#4B3FA8"/>
+    <path d="M47.5,59 Q54,65 60.5,59" fill="none" stroke="#4B3FA8" stroke-width="2.8" stroke-linecap="round"/>
+    <circle cx="42" cy="58.5" r="2.6" fill="#FF8A7A" fill-opacity="0.75"/>
+    <circle cx="66" cy="58.5" r="2.6" fill="#FF8A7A" fill-opacity="0.75"/>
+    <!-- signal waves -->
+    <path d="M76,30 A9,9 0 0 1 83,37" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <path d="M77,22 A17,17 0 0 1 91,36" fill="none" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
