@@ -54,7 +54,7 @@ object Mfcc {
         if (frameList.isEmpty()) return null
         val acc = FloatArray(COEFFS)
         for (f in frameList) for (i in 0 until COEFFS) acc[i] += f[i]
-        for (i in 0 until COEFFS) acc[i] /= frameList.size
+        for (i in 0 until COEFFS) acc[i] = acc[i] / frameList.size.toFloat()
         return acc
     }
 
@@ -63,7 +63,7 @@ object Mfcc {
         if (vectors.isEmpty()) return null
         val acc = FloatArray(COEFFS)
         for (v in vectors) for (i in 0 until COEFFS) acc[i] += v[i]
-        for (i in 0 until COEFFS) acc[i] /= vectors.size
+        for (i in 0 until COEFFS) acc[i] = acc[i] / vectors.size.toFloat()
         return acc
     }
 
