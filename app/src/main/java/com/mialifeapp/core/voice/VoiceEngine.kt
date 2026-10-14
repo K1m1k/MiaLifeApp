@@ -44,11 +44,16 @@ class VoiceEngine(
     private var ringPos = 0
     private var lastTriggerAt = 0L
 
+    /** Avvia l'ascolto. Ritorna false se il modello vocale non è presente sul telefono. */
     fun start(): Boolean {
         if (running) return true
-        val model = try { Model(VoiceModel.modelPath(ctx).absolutePath) } catch (e: Exception) { return false }
+        if (!VoiceModel.isReady(ctx)) return false
         running = true
-        thread = Thread { loop(model) }.also { it.isDaemon = true; it.start() }
+        thread = Thread {
+            // Il modello si carica qui (1-2 secondi), non sul thread dello schermo.
+            val model = try { Model(VoiceModel.modelPath(ctx).absolutePath) } catch (e: Exception) { null }
+            if (model == null) { running = false } else loop(model)
+        }.also { it.isDaemon = true; it.start() }
         return true
     }
 

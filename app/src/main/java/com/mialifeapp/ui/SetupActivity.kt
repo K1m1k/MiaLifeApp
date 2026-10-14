@@ -352,7 +352,9 @@ class SetupActivity : AppCompatActivity() {
         b.seqResult.status(Level.WARN, "Batti ora la tua sequenza sul retro… (8 secondi)")
         ProtectionService.pauseDetection = true
         val rec = TapRecorder()
-        tapListener = TapListener(this, { now ->
+        val startAt = System.currentTimeMillis()
+        tapListener = TapListener(this, cb@{ now ->
+            if (now - startAt < 400) return@cb // tocco del pulsante sullo schermo
             rec.onTap(now)
             b.seqResult.status(Level.WARN, "Registro… colpetti sentiti: ${rec.totalTaps()}  (gruppi: ${rec.result().joinToString(" · ")})")
         }).also { it.start() }
@@ -517,7 +519,7 @@ class SetupActivity : AppCompatActivity() {
         if (SecurePrefs.getVoiceTemplate(this) == null) { toast("Registra prima la frase 5 volte."); return }
         if (!Perms.hasMic(this)) { toast("Serve il permesso microfono."); return }
         b.voiceTest.text = "Sto ascoltando… tocca per fermare"
-        voiceTester = VoiceEngine(
+        val engine = VoiceEngine(
             ctx = this,
             testMode = true,
             onScore = { phraseOk, speaker, heard ->
@@ -528,7 +530,13 @@ class SetupActivity : AppCompatActivity() {
                 }
             },
             onTrigger = {}
-        ).also { if (!it.start()) { voiceTester = null; b.voiceTest.text = getString(R.string.voice_test); toast("Riconoscitore non avviato.") } }
+        )
+        if (engine.start()) {
+            voiceTester = engine
+        } else {
+            b.voiceTest.text = getString(R.string.voice_test)
+            toast("Riconoscitore non avviato: scarica prima il modello.")
+        }
     }
 
     // ---- SMS di prova ----

@@ -291,12 +291,13 @@ class ProtectionService : Service() {
             until > now
         if (active) {
             if (voice == null) {
-                voice = VoiceEngine(
+                val engine = VoiceEngine(
                     ctx = this,
                     testMode = false,
                     onScore = { _, _, _ -> },
                     onTrigger = { handler.post { if (!SecurePrefs.isEmergencyActive(this)) startEmergency(coerced = false) } }
-                ).also { if (!it.start()) voice = null }
+                )
+                if (engine.start()) voice = engine
             }
             handler.postDelayed(appointmentEnd, (until - now).coerceAtMost(60 * 60_000L))
         } else {

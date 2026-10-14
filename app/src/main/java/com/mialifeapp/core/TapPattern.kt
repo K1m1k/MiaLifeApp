@@ -22,16 +22,14 @@ class TapMatcher(
         lastTap = now
         taps.add(now)
 
+        if (taps.size > 60) taps.subList(0, taps.size - 60).clear()
+
         val groups = segment(taps)
-        // deve combaciare esattamente con la sequenza target
-        if (groups.size == target.size && groups == target) {
+        // Basta che gli ULTIMI gruppi combacino: un colpetto casuale prima (separato da una pausa)
+        // non fa più fallire la sequenza.
+        if (groups.size >= target.size && groups.takeLast(target.size) == target) {
             taps.clear()
             return true
-        }
-        // se abbiamo già più gruppi del target o il primo gruppo è troppo grande, azzera
-        if (groups.size > target.size) {
-            taps.clear()
-            taps.add(now)
         }
         return false
     }
