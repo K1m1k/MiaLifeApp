@@ -184,7 +184,7 @@ class ProtectionService : Service() {
         Notifications.cancel(this, Notifications.ID_RESTORE)
         Notifications.cancel(this, Notifications.ID_DRIVE)
         // 1) prima di tutto la richiesta di aiuto: non dipende dal microfono
-        if (coerced) SmsHelper.sendToAll(this, Messages.coerced(this))
+        if (coerced && !Messages.hasCode(this)) SmsHelper.sendToAll(this, Messages.coerced(this))
         sendLocation(Messages.Kind.HELP)
         // 2) poi registrazione e cicli periodici
         beginLoops()
@@ -248,7 +248,7 @@ class ProtectionService : Service() {
             startEmergency(coerced = true)
         } else if (!SecurePrefs.isCoerced(this)) {
             SecurePrefs.setCoerced(this, true)
-            SmsHelper.sendToAll(this, Messages.coerced(this))
+            if (!Messages.hasCode(this)) SmsHelper.sendToAll(this, Messages.coerced(this))
             sendLocation(Messages.Kind.UPDATE)
         }
     }

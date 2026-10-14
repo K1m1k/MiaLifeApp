@@ -142,4 +142,10 @@
     <string name="appointment_2h">2 ore</string>
     <string name="appointment_4h">4 ore</string>
     <string name="appointment_stop">Ferma la Modalità appuntamento</string>
+
+    <!-- Sicurezza PIN e messaggio in codice -->
+    <string name="pin_locked">Troppi tentativi sbagliati. Riprova tra %1$d minuti.</string>
+    <string name="coercion_code_title">Messaggio in codice (consigliato)</string>
+    <string name="coercion_code_body">Gli SMS inviati restano nella cartella \"Inviati\" del telefono: chi ti costringe potrebbe leggerli. Scrivi qui una frase normale concordata PRIMA con i tuoi contatti (per esempio \"Stasera porto io il dolce\"). In coercizione l\'app manderà solo questa frase con il link della posizione, niente \"AIUTO\". Lascia vuoto per usare il messaggio esplicito.</string>
+    <string name="coercion_code_hint">Frase in codice concordata con i contatti</string>
 </resources>

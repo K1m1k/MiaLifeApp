@@ -14,7 +14,15 @@ object Messages {
     fun time(t: Long = System.currentTimeMillis()): String =
         SimpleDateFormat("HH:mm", Locale.ITALY).format(Date(t))
 
+    /** C'è un messaggio in codice per la coercizione? */
+    fun hasCode(c: Context) = SecurePrefs.getCoercionCode(c).isNotEmpty()
+
     fun location(c: Context, kind: Kind, loc: Location?): String {
+        // In coercizione con codice: solo il testo concordato (+ link), niente "AIUTO" negli Inviati.
+        if (SecurePrefs.isCoerced(c) && hasCode(c)) {
+            val code = SecurePrefs.getCoercionCode(c)
+            return if (loc != null) code + " " + LocationHelper.mapsLink(loc) else code
+        }
         val t = time()
         val body = when (kind) {
             Kind.HELP -> if (loc != null) c.getString(R.string.sms_help, t, LocationHelper.describe(loc))

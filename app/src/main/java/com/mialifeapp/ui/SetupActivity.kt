@@ -105,6 +105,7 @@ class SetupActivity : AppCompatActivity() {
         steps = listOf(b.stepContacts, b.stepPin, b.stepSeq, b.stepPerm, b.stepBattery, b.stepDrive, b.stepLock, b.stepVoice, b.stepDone)
         b.progress.max = steps.size
 
+        if (!fake) b.coercionCode.setText(SecurePrefs.getCoercionCode(this))
         contactFields.forEachIndexed { i, f ->
             f.hint = getString(R.string.contact_hint, i + 1)
             if (!fake) f.setText(SecurePrefs.getContactRaw(this, i + 1))
@@ -259,14 +260,15 @@ class SetupActivity : AppCompatActivity() {
         if (setCoercion) {
             if (!Pin.isValidFormat(c1)) return "Il PIN di coercizione deve avere da 4 a 8 cifre."
             if (c1 != c2) return "I due PIN di coercizione non coincidono."
-            val sameAsReal = if (keepPin) Pin.check(this, c1) == PinResult.REAL else c1 == p1
+            val sameAsReal = if (keepPin) Pin.peek(this, c1) == PinResult.REAL else c1 == p1
             if (sameAsReal) return "Il PIN di coercizione deve essere diverso dal PIN."
-        } else if (!keepPin && !fake && Pin.hasCoercion(this) && Pin.check(this, p1) == PinResult.COERCION) {
+        } else if (!keepPin && !fake && Pin.hasCoercion(this) && Pin.peek(this, p1) == PinResult.COERCION) {
             return "Il nuovo PIN è uguale al PIN di coercizione: scegline un altro."
         }
         if (fake) return null
         if (!keepPin) SecurePrefs.setPinRecord(this, Pin.makeRecord(p1))
         if (setCoercion) SecurePrefs.setCoercionRecord(this, Pin.makeRecord(c1))
+        SecurePrefs.setCoercionCode(this, b.coercionCode.text.toString())
         listOf(b.pin1, b.pin2, b.coercion1, b.coercion2).forEach { it.setText("") }
         b.pinKeepHint.visibility = View.VISIBLE
         b.pinKeepHint.text = getString(R.string.pin_keep_hint)

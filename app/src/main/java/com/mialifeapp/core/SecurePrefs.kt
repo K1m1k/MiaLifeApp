@@ -79,6 +79,15 @@ object SecurePrefs {
     fun getCoercionRecord(c: Context): String? = getStr(c, "pin_coercion")
     fun setCoercionRecord(c: Context, v: String?) = putStr(c, "pin_coercion", v)
 
+    fun getPinFails(c: Context): Int = getStr(c, "pin_fails")?.toIntOrNull() ?: 0
+    fun setPinFails(c: Context, v: Int) = putStr(c, "pin_fails", if (v > 0) v.toString() else null)
+    fun getPinLockUntil(c: Context): Long = getLong(c, "pin_lock")
+    fun setPinLockUntil(c: Context, t: Long) = putStr(c, "pin_lock", if (t > 0) t.toString() else null)
+
+    /** Messaggio in codice concordato con i contatti, usato al posto degli SMS espliciti in coercizione. */
+    fun getCoercionCode(c: Context): String = getStr(c, "coercion_code")?.trim() ?: ""
+    fun setCoercionCode(c: Context, v: String) = putStr(c, "coercion_code", v.trim().ifEmpty { null })
+
     // ---- stato ----
     fun isOnboarded(c: Context) = getBool(c, "onboarded")
     fun setOnboarded(c: Context, v: Boolean) = putBool(c, "onboarded", v)

@@ -160,6 +160,15 @@
                         android:importantForAutofill="no"
                         android:inputType="numberPassword"
                         android:maxLength="8" />
+                    <TextView style="@style/CardTitle" android:layout_marginTop="18dp" android:text="@string/coercion_code_title" />
+                    <TextView style="@style/Body" android:text="@string/coercion_code_body" />
+                    <EditText
+                        android:id="@+id/coercionCode"
+                        style="@style/Field"
+                        android:hint="@string/coercion_code_hint"
+                        android:importantForAutofill="no"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:maxLength="120" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

@@ -64,6 +64,10 @@ class EmergencyActivity : AppCompatActivity() {
                 EmergencyControl.coerce(this, showAsDisarmed = true)
                 done()
             }
+            PinResult.LOCKED -> {
+                b.pinInput.setText("")
+                b.pinMessage.text = getString(R.string.pin_locked, Pin.lockMinutesLeft(this))
+            }
             PinResult.WRONG -> {
                 b.pinInput.setText("")
                 b.pinMessage.text = getString(R.string.pin_wrong)

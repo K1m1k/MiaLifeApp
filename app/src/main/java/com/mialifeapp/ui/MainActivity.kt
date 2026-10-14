@@ -238,6 +238,7 @@ class MainActivity : AppCompatActivity() {
                     refresh()
                 }
                 PinResult.WRONG -> toast(getString(R.string.pin_wrong))
+                PinResult.LOCKED -> toast(getString(R.string.pin_locked, Pin.lockMinutesLeft(this)))
             }
         }
     }
@@ -255,6 +256,7 @@ class MainActivity : AppCompatActivity() {
                     openSetup(fake = true)
                 }
                 PinResult.WRONG -> toast(getString(R.string.pin_wrong))
+                PinResult.LOCKED -> toast(getString(R.string.pin_locked, Pin.lockMinutesLeft(this)))
             }
         }
     }
