@@ -114,22 +114,16 @@ Valori modificabili in `core/Config.kt` (durata pezzi audio, intervallo Drive, i
   background e servizi in primo piano; e un `targetSdk` aggiornato a quello richiesto da Google al
   momento della pubblicazione.
 
-## Attivazione vocale — "Modalità appuntamento" (sperimentale, v2.4)
-Oltre ai colpetti, l'app può attivare l'aiuto con una **frase scelta dall'utente**, verificando
-anche che sia **la sua voce** a dirla.
+## Attivazione vocale — "Modalità appuntamento"
+- **Nessun download e nessun vocabolario**: l'utente registra la sua frase 5 volte; l'app la riconosce
+  confrontando l'audio (impronta MFCC con allineamento nel tempo) con tutte le registrazioni.
+  Il confronto tiene conto insieme della frase e della voce di chi la dice.
+- Va accesa **a tempo** (1, 2 o 4 ore) dalla schermata principale: tiene il microfono acceso
+  (pallino verde, più batteria). I colpetti restano sempre attivi.
+- Nel passo "Attivazione vocale" c'è una prova che mostra la somiglianza in % e se "scatterebbe";
+  la soglia è regolabile e va tarata sul telefono, anche in tasca e con rumore.
 
-- Riconoscimento **tutto sul telefono** (Vosk), offline. Il modello italiano (~50 MB) si scarica
-  una volta sola in configurazione (serve rete solo in quel momento).
-- La frase si registra **5 volte**: l'app impara la frase (vocabolario limitato) e un'impronta MFCC
-  della voce. In emergenza confronta frase + voce; parte solo se entrambe corrispondono.
-- Va accesa **a tempo** dalla schermata principale ("Modalità appuntamento": 1, 2 o 4 ore), perché
-  tiene il microfono acceso: compare il **pallino verde** e consuma più batteria. Allo scadere si
-  spegne da sola; i colpetti restano sempre attivi.
-- Nel passo "Attivazione vocale" c'è una **prova** che mostra i due valori ("frase: sì · voce: 78%")
-  e una **severità voce** regolabile: va tarata sul telefono, anche con il telefono in tasca.
-
-> ⚠️ Funzione nuova e NON testata su dispositivo in questa consegna: va provata e tarata sul campo
-> prima di affidarcisi. In caso di dubbio, i colpetti restano il metodo principale.
-
-Dipendenze aggiunte: `com.alphacephei:vosk-android:0.3.47`, `net.java.dev.jna:jna:5.13.0@aar`.
-
+## Xiaomi / Redmi / POCO: SMS in background
+HyperOS/MIUI blocca gli SMS inviati dalle app in background se il permesso non è su "Consenti".
+Impostazioni › App › MiaLifeApp › Autorizzazioni: **SMS → Consenti**; in "Altre autorizzazioni"
+consentire gli SMS e "Mostra finestre pop-up in background". La guida dell'app lo ricorda.

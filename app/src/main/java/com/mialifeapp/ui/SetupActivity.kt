@@ -35,7 +35,6 @@ import com.mialifeapp.databinding.ActivitySetupBinding
 import com.mialifeapp.core.voice.Mfcc
 import com.mialifeapp.core.voice.VoiceEngine
 import com.mialifeapp.core.voice.VoiceEnroll
-import com.mialifeapp.core.voice.VoiceModel
 import java.util.concurrent.Executors
 
 /**
@@ -58,7 +57,7 @@ class SetupActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val io = Executors.newSingleThreadExecutor()
     private var tapListener: TapListener? = null
-    private val voiceTemplates = ArrayList<FloatArray>()
+    private val voiceTemplates = ArrayList<List<FloatArray>>()
     private var voiceRecorded = 0
     private var voiceTester: VoiceEngine? = null
 
@@ -156,7 +155,6 @@ class SetupActivity : AppCompatActivity() {
             if (!fake) SecurePrefs.setVoiceEnabled(this, on)
             updateStatuses()
         }
-        b.voiceDownload.setOnClickListener { downloadVoiceModel() }
         b.voiceRecord.setOnClickListener { recordVoiceTake() }
         b.voiceTest.setOnClickListener { toggleVoiceTest() }
         b.voiceThreshold.setOnClickListener {
@@ -448,65 +446,39 @@ class SetupActivity : AppCompatActivity() {
     // ---- Attivazione vocale ----
     private fun renderVoiceStatus() {
         val on = SecurePrefs.isVoiceEnabled(this)
+        val enrolled = SecurePrefs.hasVoiceTemplates(this)
         b.voiceEnable.text = getString(if (on) R.string.voice_disable else R.string.voice_enable)
-        val modelOk = VoiceModel.isReady(this)
-        val hasPhrase = SecurePrefs.getVoicePhrase(this).isNotEmpty()
-        b.voiceDownload.isEnabled = !modelOk
+        b.voiceDownload.visibility = View.GONE
         b.voiceRecord.text = getString(R.string.voice_record, (voiceRecorded + 1).coerceAtMost(Config.VOICE_ENROLL_COUNT), Config.VOICE_ENROLL_COUNT)
         b.voiceThreshold.text = getString(R.string.voice_threshold, SecurePrefs.getVoiceThreshold(this))
-        val group = listOf(b.voicePhrase, b.voiceRecord, b.voiceThreshold)
-        group.forEach { it.isEnabled = on; it.alpha = if (on) 1f else 0.4f }
-        b.voiceDownload.isEnabled = on && !modelOk
-        b.voiceDownload.alpha = if (on) 1f else 0.4f
-        b.voiceTest.isEnabled = on && modelOk && hasPhrase && SecurePrefs.getVoiceTemplate(this) != null
+        listOf(b.voicePhrase, b.voiceRecord, b.voiceThreshold).forEach { it.isEnabled = on; it.alpha = if (on) 1f else 0.4f }
+        b.voiceTest.isEnabled = on && enrolled
         b.voiceTest.alpha = if (b.voiceTest.isEnabled) 1f else 0.4f
         when {
             !on -> b.voiceStatus.status(Level.WARN, "Attivazione vocale spenta (facoltativa)")
-            !modelOk -> b.voiceStatus.status(Level.BAD, "Scarica prima il riconoscitore italiano")
-            !hasPhrase -> b.voiceStatus.status(Level.WARN, "Scrivi la frase e registrala 5 volte")
-            else -> b.voiceStatus.status(Level.OK, "Pronta: frase + voce registrate")
-        }
-        if (SecurePrefs.getVoicePhrase(this).isNotEmpty() && voiceRecorded >= Config.VOICE_ENROLL_COUNT)
-            b.voiceResult.status(Level.OK, getString(R.string.voice_enrolled))
-    }
-
-    private fun downloadVoiceModel() {
-        if (fake) { b.voiceStatus.status(Level.OK, "Scaricato"); return }
-        b.voiceDownload.isEnabled = false
-        io.execute {
-            val ok = VoiceModel.download(this) { pct ->
-                runOnUiThread {
-                    if (isFinishing) return@runOnUiThread
-                    b.voiceStatus.status(Level.WARN, if (pct < 0) getString(R.string.voice_unzipping) else getString(R.string.voice_downloading, pct))
-                }
-            }
-            runOnUiThread {
-                if (isFinishing) return@runOnUiThread
-                if (ok) toast("Riconoscitore pronto.") else toast("Scaricamento non riuscito: controlla la connessione e riprova.")
-                renderVoiceStatus()
-            }
+            !enrolled -> b.voiceStatus.status(Level.WARN, "Registra la tua frase ${Config.VOICE_ENROLL_COUNT} volte")
+            else -> b.voiceStatus.status(Level.OK, "Pronta: frase registrata")
         }
     }
 
     private fun recordVoiceTake() {
         if (fake) { toast("Registrato."); return }
-        val words = b.voicePhrase.text.toString().lowercase().split(Regex("\\s+")).filter { it.isNotEmpty() }
-        if (words.size < 2) { toast("Scrivi prima una frase di almeno 2 parole."); return }
         if (!Perms.hasMic(this)) { toast("Serve il permesso microfono (passo Permessi)."); return }
-        if (voiceRecorded == 0) { voiceTemplates.clear(); SecurePrefs.setVoicePhrase(this, words) }
+        if (voiceRecorded == 0) voiceTemplates.clear()
         b.voiceResult.status(Level.WARN, getString(R.string.voice_recording))
+        b.voiceRecord.isEnabled = false
         io.execute {
             val samples = VoiceEnroll.record(Config.VOICE_ENROLL_MAX_MS)
-            val tpl = samples?.let { VoiceEnroll.templateOf(it) }
+            val seq = samples?.let { VoiceEnroll.sequenceOf(it) }
             runOnUiThread {
                 if (isFinishing) return@runOnUiThread
-                if (tpl == null) { b.voiceResult.status(Level.BAD, "Non ho sentito la frase: riprova a voce chiara."); return@runOnUiThread }
-                voiceTemplates.add(tpl)
+                b.voiceRecord.isEnabled = true
+                if (seq == null) { b.voiceResult.status(Level.BAD, "Non ho sentito la frase: riprova a voce chiara."); return@runOnUiThread }
+                voiceTemplates.add(seq)
                 voiceRecorded++
                 if (voiceRecorded >= Config.VOICE_ENROLL_COUNT) {
-                    val avg = Mfcc.average(voiceTemplates)
-                    SecurePrefs.setVoiceTemplate(this, avg)
-                    SecurePrefs.setVoicePhrase(this, words)
+                    SecurePrefs.setVoiceTemplates(this, ArrayList(voiceTemplates))
+                    voiceRecorded = 0
                     b.voiceResult.status(Level.OK, getString(R.string.voice_enrolled))
                 } else {
                     b.voiceResult.status(Level.WARN, "Registrazione ${voiceRecorded} di ${Config.VOICE_ENROLL_COUNT} fatta. Ripeti la frase.")
@@ -518,17 +490,18 @@ class SetupActivity : AppCompatActivity() {
 
     private fun toggleVoiceTest() {
         if (voiceTester != null) { voiceTester?.stop(); voiceTester = null; b.voiceTest.text = getString(R.string.voice_test); return }
-        if (SecurePrefs.getVoiceTemplate(this) == null) { toast("Registra prima la frase 5 volte."); return }
+        if (!SecurePrefs.hasVoiceTemplates(this)) { toast("Registra prima la frase ${Config.VOICE_ENROLL_COUNT} volte."); return }
         if (!Perms.hasMic(this)) { toast("Serve il permesso microfono."); return }
         b.voiceTest.text = "Sto ascoltando… tocca per fermare"
         val engine = VoiceEngine(
             ctx = this,
             testMode = true,
-            onScore = { phraseOk, speaker, heard ->
+            onScore = { score ->
                 runOnUiThread {
                     if (isFinishing) return@runOnUiThread
-                    val lvl = if (phraseOk && speaker >= SecurePrefs.getVoiceThreshold(this)) Level.OK else Level.WARN
-                    b.voiceResult.status(lvl, "frase: ${if (phraseOk) "sì" else "no"} · voce: $speaker%  (sentito: \"$heard\")")
+                    val ok = score >= SecurePrefs.getVoiceThreshold(this)
+                    b.voiceResult.status(if (ok) Level.OK else Level.WARN,
+                        "somiglianza alla tua frase: $score%  (soglia ${SecurePrefs.getVoiceThreshold(this)}%) " + if (ok) "→ SCATTEREBBE" else "→ non scatta")
                 }
             },
             onTrigger = {}

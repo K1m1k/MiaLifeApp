@@ -11,8 +11,8 @@ android {
         applicationId = "com.mialifeapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "2.6"
+        versionCode = 6
+        versionName = "2.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -56,9 +56,6 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.play.services.auth)
-    // Riconoscimento vocale offline (Modalità appuntamento)
-    implementation("com.alphacephei:vosk-android:0.3.47@aar") // @aar: evita il doppione di JNA
-    implementation("net.java.dev.jna:jna:5.13.0@aar")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

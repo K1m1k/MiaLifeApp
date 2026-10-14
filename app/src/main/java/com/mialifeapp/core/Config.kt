@@ -31,7 +31,5 @@ object Config {
     const val VOICE_SPEAKER_THRESHOLD_DEFAULT = 55
     /** Durate selezionabili della Modalità appuntamento (minuti). */
     val APPOINTMENT_DURATIONS_MIN = listOf(60, 120, 240)
-    /** Nome del modello vocale italiano (Vosk) scaricato sul telefono. */
-    const val VOICE_MODEL_NAME = "vosk-model-small-it-0.22"
-    const val VOICE_MODEL_URL = "https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip"
+
 }

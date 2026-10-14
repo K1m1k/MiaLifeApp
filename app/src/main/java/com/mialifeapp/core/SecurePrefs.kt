@@ -120,18 +120,37 @@ object SecurePrefs {
     fun isVoiceEnabled(c: Context) = getBool(c, "voice_on")
     fun setVoiceEnabled(c: Context, v: Boolean) = putBool(c, "voice_on", v)
 
-    /** Parole della frase di attivazione, in minuscolo. */
-    fun getVoicePhrase(c: Context): List<String> =
-        getStr(c, "voice_phrase")?.split(" ")?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
-    fun setVoicePhrase(c: Context, words: List<String>) = putStr(c, "voice_phrase", words.joinToString(" "))
-
-    /** Impronta della voce (media dei coefficienti MFCC), come numeri separati da virgola. */
-    fun getVoiceTemplate(c: Context): FloatArray? {
-        val raw = getStr(c, "voice_tpl") ?: return null
-        return try { raw.split(",").map { it.toFloat() }.toFloatArray() } catch (e: Exception) { null }
+    /**
+     * Le registrazioni della frase (una sequenza MFCC per registrazione), salvate CIFRATE in un file
+     * privato dell'app. Formato interno: registrazioni separate da "|", frame da ";", valori da ",".
+     */
+    fun getVoiceTemplates(c: Context): List<List<FloatArray>>? {
+        val f = java.io.File(c.filesDir, "voice_tpl.enc")
+        if (!f.exists()) return null
+        return try {
+            val raw = Crypto.decrypt(f.readText())
+            val takes = raw.split("|").filter { it.isNotEmpty() }.map { take ->
+                take.split(";").filter { it.isNotEmpty() }.map { row ->
+                    row.split(",").map { it.toFloat() }.toFloatArray()
+                }
+            }.filter { it.isNotEmpty() }
+            takes.ifEmpty { null }
+        } catch (e: Exception) { null }
     }
-    fun setVoiceTemplate(c: Context, v: FloatArray?) =
-        putStr(c, "voice_tpl", v?.joinToString(",") { it.toString() })
+
+    fun setVoiceTemplates(c: Context, takes: List<List<FloatArray>>?): Boolean {
+        val f = java.io.File(c.filesDir, "voice_tpl.enc")
+        if (takes.isNullOrEmpty()) { f.delete(); return true }
+        return try {
+            val raw = takes.joinToString("|") { take ->
+                take.joinToString(";") { row -> row.joinToString(",") { String.format(java.util.Locale.US, "%.3f", it) } }
+            }
+            f.writeText(Crypto.encrypt(raw))
+            true
+        } catch (e: Exception) { false }
+    }
+
+    fun hasVoiceTemplates(c: Context) = java.io.File(c.filesDir, "voice_tpl.enc").exists()
 
     fun getVoiceThreshold(c: Context): Int = getStr(c, "voice_thr")?.toIntOrNull()?.coerceIn(0, 100) ?: Config.VOICE_SPEAKER_THRESHOLD_DEFAULT
     fun setVoiceThreshold(c: Context, v: Int) = putStr(c, "voice_thr", v.coerceIn(0, 100).toString())

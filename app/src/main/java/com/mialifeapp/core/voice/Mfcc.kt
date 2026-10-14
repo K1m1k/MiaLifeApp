@@ -16,7 +16,7 @@ object Mfcc {
     private const val FRAME = 512           // ~32 ms
     private const val HOP = 256             // ~16 ms
     private const val MEL_FILTERS = 26
-    private const val COEFFS = 13
+    const val COEFFS = 13
     private const val PREEMPH = 0.97f
 
     /** Energia minima di un frame perché sia considerato "voce" e non silenzio. */
@@ -75,6 +75,45 @@ object Mfcc {
         if (na <= 0f || nb <= 0f) return 0
         val cos = dot / (sqrt(na) * sqrt(nb))
         return (((cos + 1f) / 2f) * 100f).toInt().coerceIn(0, 100)
+    }
+
+    /**
+     * Somiglianza 0..100 tra due FRASI (sequenze di vettori MFCC) con allineamento temporale (DTW).
+     * Confronta insieme "cosa è detto" e "come": è la base del riconoscimento sulla frase registrata.
+     */
+    fun sequenceSimilarity(a: List<FloatArray>, b: List<FloatArray>): Int {
+        if (a.isEmpty() || b.isEmpty()) return 0
+        val n = a.size; val m = b.size
+        val inf = Float.MAX_VALUE / 4
+        var prev = FloatArray(m + 1) { inf }
+        var cur = FloatArray(m + 1) { inf }
+        prev[0] = 0f
+        for (i in 1..n) {
+            cur[0] = inf
+            for (j in 1..m) {
+                val cost = dist(a[i - 1], b[j - 1])
+                val best = minOf(prev[j], cur[j - 1], prev[j - 1])
+                cur[j] = cost + best
+            }
+            val t = prev; prev = cur; cur = t
+        }
+        val pathLen = (n + m).toFloat()
+        val avg = prev[m] / pathLen
+        // avg piccolo = molto simile. SCALE è la distanza media oltre la quale la somiglianza è 0.
+        val sim = (1f - avg / SCALE) * 100f
+        return sim.toInt().coerceIn(0, 100)
+    }
+
+    /** Distanza media DTW tra due sequenze (per scegliere la registrazione "tipica"). */
+    fun dtwDistance(a: List<FloatArray>, b: List<FloatArray>): Float =
+        (100 - sequenceSimilarity(a, b)).toFloat()
+
+    private const val SCALE = 45f
+
+    private fun dist(a: FloatArray, b: FloatArray): Float {
+        var s = 0f
+        for (i in a.indices) { val d = a[i] - b[i]; s += d * d }
+        return sqrt(s)
     }
 
     // ---- interni ----

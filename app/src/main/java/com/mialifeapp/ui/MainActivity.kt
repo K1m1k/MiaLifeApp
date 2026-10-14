@@ -18,7 +18,6 @@ import com.mialifeapp.core.ProtectionService
 import com.mialifeapp.core.SecurePrefs
 import com.mialifeapp.core.Config
 import com.mialifeapp.core.SmsHelper
-import com.mialifeapp.core.voice.VoiceModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -114,8 +113,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun renderAppointment() {
-        val ready = SecurePrefs.isVoiceEnabled(this) && VoiceModel.isReady(this) &&
-            SecurePrefs.getVoicePhrase(this).isNotEmpty() && SecurePrefs.getVoiceTemplate(this) != null
+        val ready = SecurePrefs.isVoiceEnabled(this) && SecurePrefs.hasVoiceTemplates(this)
         b.appointmentButton.visibility = if (ready) android.view.View.VISIBLE else android.view.View.GONE
         if (!ready) return
         val until = SecurePrefs.getAppointmentUntil(this)

@@ -123,13 +123,17 @@
 
     <!-- Modalità appuntamento / voce -->
     <string name="step_voice_title">Attivazione vocale (facoltativa)</string>
-    <string name="step_voice_body">Oltre ai colpetti, puoi attivare l\'aiuto con una frase scelta da te. È pensata per i momenti più a rischio e va accesa a tempo (\"Modalità appuntamento\"), perché tiene il microfono in ascolto: compare il pallino verde e consuma più batteria.\n\nScarica una volta il riconoscitore italiano, poi registra la tua frase 5 volte: l\'app imparerà sia la frase sia il suono della tua voce. Scegli una frase di 3-4 parole che puoi dire senza insospettire chi ti sta davanti.</string>
+    <string name="step_voice_body">Oltre ai colpetti puoi attivare l\'aiuto con una frase tua. Non serve scaricare niente: l\'app registra la frase detta dalla tua voce e poi la riconosce confrontando l\'audio, anche senza internet.
+
+Va accesa a tempo (\"Modalità appuntamento\") perché tiene il microfono in ascolto: compare il pallino verde e consuma più batteria.
+
+Registra la frase 5 volte, possibilmente in modi diversi (voce normale, voce bassa, un po\' di rumore intorno). Scegli una frase di 3-4 parole che puoi dire senza insospettire nessuno.</string>
     <string name="voice_enable">Attiva la frase vocale</string>
     <string name="voice_disable">Disattiva la frase vocale</string>
     <string name="voice_download">Scarica il riconoscitore italiano (una volta, ~50 MB)</string>
     <string name="voice_downloading">Scaricamento in corso… %1$d%%</string>
     <string name="voice_unzipping">Preparazione del modello…</string>
-    <string name="voice_phrase_hint">Scrivi qui la tua frase (3-4 parole)</string>
+    <string name="voice_phrase_hint">Promemoria della frase (facoltativo, solo per te)</string>
     <string name="voice_record">Registra la frase (%1$d di %2$d)</string>
     <string name="voice_recording">Di\' ora la frase…</string>
     <string name="voice_enrolled">Frase e voce registrate ✓</string>

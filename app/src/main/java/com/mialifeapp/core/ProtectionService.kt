@@ -13,7 +13,6 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.mialifeapp.core.drive.DriveUploadWorker
 import com.mialifeapp.core.voice.VoiceEngine
-import com.mialifeapp.core.voice.VoiceModel
 import com.mialifeapp.core.drive.DriveUploader
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -237,8 +236,21 @@ class ProtectionService : Service() {
 
     private fun sendLocation(kind: Messages.Kind) {
         val ctx = applicationContext
+        var sent = false
+        // Se il GPS non risponde entro 20 secondi, l'SMS parte comunque (senza posizione).
+        val fallback = Runnable {
+            if (!sent) { sent = true; SmsHelper.sendToAll(ctx, Messages.location(ctx, kind, null)) }
+        }
+        handler.postDelayed(fallback, 20_000)
         LocationHelper.getCurrent(ctx) { loc ->
-            SmsHelper.sendToAll(ctx, Messages.location(ctx, kind, loc))
+            if (!sent) {
+                sent = true
+                handler.removeCallbacks(fallback)
+                SmsHelper.sendToAll(ctx, Messages.location(ctx, kind, loc))
+            } else if (loc != null) {
+                // Posizione arrivata in ritardo: la mandiamo subito come aggiornamento.
+                SmsHelper.sendToAll(ctx, Messages.location(ctx, Messages.Kind.UPDATE, loc))
+            }
             io.execute { Evidence.writeLocation(ctx, loc) }
         }
     }
@@ -286,15 +298,14 @@ class ProtectionService : Service() {
             !SecurePrefs.isEmergencyActive(this) &&
             !degraded &&
             SecurePrefs.isVoiceEnabled(this) &&
-            SecurePrefs.getVoicePhrase(this).isNotEmpty() &&
-            VoiceModel.isReady(this) &&
+            SecurePrefs.hasVoiceTemplates(this) &&
             until > now
         if (active) {
             if (voice == null) {
                 val engine = VoiceEngine(
                     ctx = this,
                     testMode = false,
-                    onScore = { _, _, _ -> },
+                    onScore = { _ -> },
                     onTrigger = { handler.post { if (!SecurePrefs.isEmergencyActive(this)) startEmergency(coerced = false) } }
                 )
                 if (engine.start()) voice = engine

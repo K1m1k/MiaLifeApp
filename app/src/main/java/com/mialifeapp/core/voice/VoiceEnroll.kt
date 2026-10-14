@@ -6,7 +6,7 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import com.mialifeapp.core.Config
 
-/** Registra una breve frase dal microfono e ne ricava l'impronta MFCC (per la verifica della voce). */
+/** Registra una breve frase dal microfono e ne ricava la sequenza MFCC (l'"impronta" della frase). */
 object VoiceEnroll {
 
     /** Registra fino a [maxMs] e ritorna i campioni audio (-1..1), o null in caso di errore. */
@@ -43,6 +43,25 @@ object VoiceEnroll {
         }
     }
 
-    /** Impronta MFCC media di una registrazione, o null se è silenzio. */
-    fun templateOf(samples: FloatArray): FloatArray? = Mfcc.meanVector(Mfcc.frames(samples))
+    /** Sequenza MFCC di una registrazione (i soli frame sonori), o null se è silenzio. */
+    fun sequenceOf(samples: FloatArray): List<FloatArray>? {
+        val f = Mfcc.frames(samples)
+        return if (f.size < 5) null else f
+    }
+
+    /**
+     * Sceglie la registrazione "tipica" tra quelle fatte: quella che somiglia di più a tutte le altre.
+     * È più robusta di una media, perché una registrazione venuta male non rovina il modello.
+     */
+    fun bestTemplate(takes: List<List<FloatArray>>): List<FloatArray>? {
+        if (takes.isEmpty()) return null
+        if (takes.size == 1) return takes[0]
+        var best = takes[0]; var bestScore = Float.MAX_VALUE
+        for (a in takes) {
+            var sum = 0f
+            for (b in takes) if (a !== b) sum += Mfcc.dtwDistance(a, b)
+            if (sum < bestScore) { bestScore = sum; best = a }
+        }
+        return best
+    }
 }

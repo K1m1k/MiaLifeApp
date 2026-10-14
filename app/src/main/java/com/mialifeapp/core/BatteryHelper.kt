@@ -37,7 +37,7 @@ object BatteryHelper {
     /** Istruzioni per i produttori che chiudono le app in background, o null se non servono. */
     fun oemInstructions(): String? = when {
         brand.contains("xiaomi") || brand.contains("redmi") || brand.contains("poco") ->
-            "Xiaomi / Redmi / POCO: attiva \"Avvio automatico\" per MiaLifeApp. Poi in Impostazioni › App › MiaLifeApp › Risparmio batteria scegli \"Nessuna restrizione\". Infine, nelle app recenti, tieni premuta MiaLifeApp e tocca il lucchetto."
+            "Xiaomi / Redmi / POCO: attiva \"Avvio automatico\" per MiaLifeApp. Poi in Impostazioni › App › MiaLifeApp › Risparmio batteria scegli \"Nessuna restrizione\". IMPORTANTE: in Impostazioni › App › MiaLifeApp › Autorizzazioni metti \"SMS\" su \"Consenti\" (non \"Chiedi\") e in \"Altre autorizzazioni\" consenti tutto ciò che riguarda gli SMS e \"Mostra finestre pop-up in background\": altrimenti Xiaomi blocca gli SMS di aiuto a schermo spento. Infine, nelle app recenti, tieni premuta MiaLifeApp e tocca il lucchetto."
         brand.contains("huawei") || brand.contains("honor") ->
             "Huawei / Honor: in Batteria › Avvio app trova MiaLifeApp, disattiva \"Gestisci automaticamente\" e attiva tutte e tre le opzioni (avvio automatico, avvio secondario, esecuzione in background)."
         brand.contains("samsung") ->
