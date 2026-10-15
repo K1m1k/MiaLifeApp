@@ -29,8 +29,9 @@ import com.mialifeapp.core.SmsHelper
 import com.mialifeapp.core.TapListener
 import com.mialifeapp.core.TapMatcher
 import com.mialifeapp.core.TapRecorder
-import com.mialifeapp.core.drive.DriveAuth
-import com.mialifeapp.core.drive.DriveUploader
+import com.mialifeapp.core.VolumeKeyService
+import com.mialifeapp.core.mail.EmailUploader
+import com.mialifeapp.core.mail.MailSettings
 import com.mialifeapp.databinding.ActivitySetupBinding
 import com.mialifeapp.core.voice.VoiceEngine
 import com.mialifeapp.core.voice.VoiceEnroll
@@ -51,7 +52,10 @@ class SetupActivity : AppCompatActivity() {
     private var step = 0
     private var fake = false
     private var lockWarned = false
-    private var driveSkipped = false
+    private var mailSkipped = false
+    private var hostEdited = false
+    private var keysTesting = false
+    private val keyPresses = ArrayList<Pair<Char, Long>>()
     private var pickingFor = 0
     private val handler = Handler(Looper.getMainLooper())
     private val io = Executors.newSingleThreadExecutor()
@@ -88,10 +92,6 @@ class SetupActivity : AppCompatActivity() {
 
     private val askBgLocation = registerForActivityResult(ActivityResultContracts.RequestPermission()) { updateStatuses() }
 
-    private val driveConsent = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { res ->
-        val (token, err) = DriveAuth.handleResult(this, res.data)
-        if (token != null) runDriveTest() else driveFailed(err)
-    }
 
     // ---- ciclo di vita ----
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,7 +100,7 @@ class SetupActivity : AppCompatActivity() {
         setContentView(b.root)
         fake = intent.getBooleanExtra(EXTRA_FAKE, false)
 
-        steps = listOf(b.stepContacts, b.stepPin, b.stepSeq, b.stepPerm, b.stepBattery, b.stepDrive, b.stepLock, b.stepVoice, b.stepDone)
+        steps = listOf(b.stepContacts, b.stepPin, b.stepSeq, b.stepPerm, b.stepBattery, b.stepMail, b.stepKeys, b.stepLock, b.stepVoice, b.stepDone)
         b.progress.max = steps.size
 
         if (!fake) b.coercionCode.setText(SecurePrefs.getCoercionCode(this))
@@ -143,7 +143,8 @@ class SetupActivity : AppCompatActivity() {
         b.oemOpen.setOnClickListener { BatteryHelper.openOemSettings(this) }
         b.oemDone.setOnCheckedChangeListener { _, checked -> if (!fake) SecurePrefs.setOemDone(this, checked) }
 
-        b.driveConnect.setOnClickListener { connectDrive() }
+        setupMail()
+        setupKeys()
         b.lockOpen.setOnClickListener {
             try { startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS)) } catch (_: Exception) { toast("Apri a mano: Impostazioni › Sicurezza") }
         }
@@ -164,7 +165,7 @@ class SetupActivity : AppCompatActivity() {
 
         b.backButton.setOnClickListener { if (step == 0) finish() else showStep(step - 1) }
         b.nextButton.setOnClickListener { next() }
-        b.skipButton.setOnClickListener { driveSkipped = true; showStep(step + 1) }
+        b.skipButton.setOnClickListener { mailSkipped = true; showStep(step + 1) }
 
         showStep(0)
     }
@@ -193,7 +194,8 @@ class SetupActivity : AppCompatActivity() {
         b.stepCounter.text = getString(R.string.setup_step_of, step + 1, steps.size)
         b.progress.setProgressCompat(step + 1, true)
         b.nextButton.text = getString(if (step == steps.size - 1) R.string.setup_complete else R.string.setup_next)
-        b.skipButton.visibility = if (BuildConfig.DEBUG && steps[step] == b.stepDrive) View.VISIBLE else View.GONE
+        b.skipButton.visibility = if (BuildConfig.DEBUG && steps[step] == b.stepMail) View.VISIBLE else View.GONE
+        if (steps[step] != b.stepKeys) stopKeysTest()
         b.scroll.scrollTo(0, 0)
         updateStatuses()
     }
@@ -227,8 +229,10 @@ class SetupActivity : AppCompatActivity() {
                 "Segui le istruzioni del produttore e poi spunta \"${getString(R.string.battery_oem_done)}\"."
             else -> null
         }
-        b.stepDrive -> if (fake || driveSkipped || SecurePrefs.isDriveOk(this)) null
-                       else "Collega Google Drive e attendi il caricamento di prova."
+        b.stepMail -> if (fake || mailSkipped || SecurePrefs.isMailOk(this)) null
+                      else "Scrivi email e password e tocca \"${getString(R.string.mail_test)}\": serve che l'email di prova parta."
+        b.stepKeys -> if (fake || VolumeKeyService.isEnabled(this)) null
+                      else "Attiva i tasti in Accessibilità (cerca \"${getString(R.string.launcher_name)}\") per continuare."
         else -> null
     }
 
@@ -345,14 +349,14 @@ Toccando "Accetto" dichiari di aver letto e compreso questi avvisi."""
         if (BatteryHelper.isIgnoring(this)) b.batteryStatus.status(Level.OK, "Esclusa dal risparmio energetico")
         else b.batteryStatus.status(Level.BAD, "Ancora soggetta al risparmio energetico")
 
-        if (SecurePrefs.isDriveOk(this) && !fake) {
-            b.driveStatus.status(Level.OK, "Collegato" + (SecurePrefs.getDriveAccount(this)?.let { " a $it" } ?: "") +
-                ". Cartella: \"${Config.DRIVE_FOLDER_NAME}\"")
-        } else if (driveSkipped) {
-            b.driveStatus.status(Level.WARN, "Saltato (solo versione di prova): le prove restano sul telefono")
-        } else {
-            b.driveStatus.status(Level.BAD, "Non ancora collegato")
+        if (SecurePrefs.isMailOk(this) && !fake) {
+            b.mailStatus.status(Level.OK, "Funziona: le prove arrivano a ${SecurePrefs.getMailAddress(this)}")
+        } else if (mailSkipped) {
+            b.mailStatus.status(Level.WARN, "Saltato (solo versione di prova): le prove restano sul telefono")
+        } else if (b.mailTest.isEnabled) {
+            b.mailStatus.status(Level.BAD, "Non ancora provata")
         }
+        renderKeys()
 
         if (Perms.hasScreenLock(this)) b.lockStatus.status(Level.OK, "Blocco schermo attivo")
         else b.lockStatus.status(Level.WARN, "Blocco schermo non impostato")
@@ -370,7 +374,8 @@ Toccando "Accetto" dichiari di aver letto e compreso questi avvisi."""
             line(fake || Pin.hasCoercion(this), "PIN di coercizione (consigliato)"),
             line(Perms.hasEssentials(this), "Permessi"),
             line(BatteryHelper.isIgnoring(this), "Risparmio energetico"),
-            line(fake || SecurePrefs.isDriveOk(this), "Google Drive"),
+            line(fake || SecurePrefs.isMailOk(this), "Email delle prove"),
+            line(fake || VolumeKeyService.isEnabled(this), "Tasti volume (Accessibilità)"),
             line(Perms.hasScreenLock(this), "Blocco schermo (consigliato)")
         ).joinToString("\n")
     }
@@ -445,47 +450,236 @@ Toccando "Accetto" dichiari di aver letto e compreso questi avvisi."""
         tapListener = null
         voiceTester?.stop()
         voiceTester = null
+        stopKeysTest()
         ProtectionService.pauseDetection = false
     }
 
-    // ---- Google Drive ----
-    private fun connectDrive() {
-        if (fake) {
-            b.driveStatus.status(Level.OK, "Collegato")
-            return
+    // ---- Email delle prove ----
+    private fun setupMail() {
+        if (!fake) {
+            b.mailAddress.setText(SecurePrefs.getMailAddress(this) ?: "")
+            SecurePrefs.getMailHost(this)?.let { b.mailHost.setText(it); hostEdited = true }
+            b.mailPort.setText(SecurePrefs.getMailPort(this).toString())
+            b.mailTrusted.setText(SecurePrefs.getMailTrusted(this).joinToString(", "))
+            if (SecurePrefs.getMailPassword(this) != null) b.mailPassword.hint = getString(R.string.mail_password_keep)
         }
-        b.driveConnect.isEnabled = false
-        b.driveStatus.status(Level.WARN, getString(R.string.drive_working))
-        DriveAuth.authorizeInteractive(this, driveConsent) { token, err ->
-            if (token != null) runDriveTest() else driveFailed(err)
+        b.mailHost.setOnFocusChangeListener { _, has -> if (has) hostEdited = true }
+        b.mailAddress.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, st: Int, c: Int, a: Int) {}
+            override fun onTextChanged(s: CharSequence?, st: Int, bf: Int, c: Int) {}
+            override fun afterTextChanged(e: android.text.Editable?) { onMailAddressChanged() }
+        })
+        onMailAddressChanged()
+        b.mailHelp.setOnClickListener { showMailHelp() }
+        b.mailTest.setOnClickListener { testMail() }
+    }
+
+    private fun onMailAddressChanged() {
+        val addr = b.mailAddress.text.toString().trim()
+        if (!addr.contains('@') || MailSettings.domainOf(addr).length < 3) { b.mailNote.text = ""; return }
+        val p = MailSettings.guess(addr)
+        b.mailNote.text = p.note
+        if (!hostEdited) {
+            b.mailHost.setText(p.host)
+            b.mailPort.setText(p.port.toString())
         }
     }
 
-    private fun runDriveTest() {
-        b.driveStatus.status(Level.WARN, getString(R.string.drive_working))
+    private fun showMailHelp() {
+        val msg = """Gmail
+1. Apri myaccount.google.com › Sicurezza.
+2. Attiva la "Verifica in due passaggi".
+3. Cerca "Password per le app", scrivi come nome MiaLifeApp e tocca Crea.
+4. Copia le 16 lettere che compaiono e incollale qui come password.
+
+Yahoo: Sicurezza dell'account › Genera password per le app.
+iCloud: appleid.apple.com › Password specifiche per le app.
+Libero, Virgilio, Aruba, Tiscali: va bene la password normale della casella.
+Outlook/Hotmail: non è possibile, usa un'altra casella (per esempio una Gmail creata apposta).
+
+La password resta solo su questo telefono, cifrata."""
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.mail_help)
+            .setMessage(msg)
+            .setPositiveButton(R.string.ok, null)
+            .setNeutralButton("Apri pagina Google") { _, _ ->
+                try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://myaccount.google.com/apppasswords"))) }
+                catch (_: Exception) { toast("Apri a mano: myaccount.google.com") }
+            }
+            .show()
+    }
+
+    private fun testMail() {
+        val addr = b.mailAddress.text.toString().trim()
+        val pwTyped = b.mailPassword.text.toString()
+        val host = b.mailHost.text.toString().trim()
+        val port = b.mailPort.text.toString().toIntOrNull() ?: 0
+        val trusted = b.mailTrusted.text.toString().split(",", ";", " ").map { it.trim() }.filter { it.isNotEmpty() }
+        val err = when {
+            !MailSettings.isValidAddress(addr) -> "Scrivi un indirizzo email valido."
+            !MailSettings.guess(addr).supported -> MailSettings.guess(addr).note
+            pwTyped.isEmpty() && (fake || SecurePrefs.getMailPassword(this) == null) -> "Scrivi la password."
+            host.length < 4 -> "Scrivi il server di posta."
+            port !in listOf(465, 587, 25) -> "La porta deve essere 465 o 587."
+            trusted.size > 2 -> "Al massimo 2 email di fiducia."
+            trusted.any { !MailSettings.isValidAddress(it) } -> "Un'email di fiducia non è valida."
+            else -> null
+        }
+        if (err != null) { b.mailStatus.status(Level.BAD, err); return }
+        if (fake) { b.mailStatus.status(Level.OK, "Email di prova inviata."); return }
+        SecurePrefs.setMailAddress(this, addr)
+        if (pwTyped.isNotEmpty()) SecurePrefs.setMailPassword(this, pwTyped)
+        SecurePrefs.setMailHost(this, host)
+        SecurePrefs.setMailPort(this, port)
+        SecurePrefs.setMailTrusted(this, trusted)
+        SecurePrefs.setMailOk(this, false)
+        b.mailPassword.setText("")
+        b.mailPassword.hint = getString(R.string.mail_password_keep)
+        b.mailTest.isEnabled = false
+        b.mailStatus.status(Level.WARN, getString(R.string.mail_working))
         val ctx = applicationContext
         io.execute {
             Evidence.writeText(ctx, "prova_collegamento_${Evidence.stamp()}.txt",
-                "MiaLifeApp: collegamento a Google Drive riuscito. Qui finiranno le prove in caso di emergenza.\n")
-            val r = DriveUploader.uploadPending(ctx)
+                "MiaLifeApp: email delle prove configurata. Qui arriveranno registrazioni e posizioni in caso di richiesta di aiuto.\n")
+            val r = EmailUploader.uploadPending(ctx)
             runOnUiThread {
                 if (isFinishing || isDestroyed) return@runOnUiThread
-                b.driveConnect.isEnabled = true
-                if (r == DriveUploader.Result.OK || r == DriveUploader.Result.NOTHING) {
-                    SecurePrefs.setDriveOk(this, true)
-                    updateStatuses()
-                    toast("Google Drive collegato: file di prova caricato.")
-                } else {
-                    SecurePrefs.setDriveOk(this, false)
-                    driveFailed(if (r == DriveUploader.Result.NEEDS_AUTH) "Autorizzazione non valida." else "Caricamento non riuscito: controlla la connessione.")
+                b.mailTest.isEnabled = true
+                when (r) {
+                    EmailUploader.Result.OK, EmailUploader.Result.NOTHING -> {
+                        SecurePrefs.setMailOk(this, true)
+                        updateStatuses()
+                        toast("Email di prova inviata: controlla la casella (anche Spam).")
+                    }
+                    EmailUploader.Result.NEEDS_AUTH -> b.mailStatus.status(Level.BAD,
+                        "Password rifiutata. Per Gmail/Yahoo/iCloud serve la password per le app. " + (EmailUploader.lastError ?: ""))
+                    else -> b.mailStatus.status(Level.BAD, "Invio non riuscito: " + (EmailUploader.lastError ?: "controlla la connessione."))
                 }
             }
         }
     }
 
-    private fun driveFailed(err: String?) {
-        b.driveConnect.isEnabled = true
-        b.driveStatus.status(Level.BAD, "Non collegato. " + (err ?: ""))
+    // ---- Tasti volume e pulsante Bluetooth ----
+    private fun seqLabel(seq: String, choices: Map<String, String>) =
+        choices[seq] ?: seq.map { if (it == 'u') "Su" else "Giù" }.joinToString(", ")
+
+    private fun durationLabel(min: Int) = if (min < 60) "$min minuti" else if (min == 60) "1 ora" else "${min / 60} ore"
+
+    private fun <T> nextOf(list: List<T>, cur: T): T = list[(list.indexOf(cur) + 1) % list.size]
+
+    private fun setupKeys() {
+        b.keysAccOpen.setOnClickListener {
+            try { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+            catch (_: Exception) { toast("Apri a mano: Impostazioni › Accessibilità") }
+        }
+        b.keysAlertSeq.setOnClickListener {
+            val next = nextOf(Config.VOL_ALERT_CHOICES.keys.toList(), SecurePrefs.getVolAlertSeq(this))
+            if (!fake) SecurePrefs.setVolAlertSeq(this, next)
+            renderKeys()
+        }
+        b.keysHelpSeq.setOnClickListener {
+            val next = nextOf(Config.VOL_HELP_CHOICES.keys.toList(), SecurePrefs.getVolHelpSeq(this))
+            if (!fake) SecurePrefs.setVolHelpSeq(this, next)
+            renderKeys()
+        }
+        b.keysDuration.setOnClickListener {
+            val next = nextOf(Config.ALERT_DURATIONS_MIN, SecurePrefs.getAlertMinutes(this))
+            if (!fake) SecurePrefs.setAlertMinutes(this, next)
+            renderKeys()
+        }
+        b.keysTest.setOnClickListener { if (keysTesting) stopKeysTest() else startKeysTest() }
+        b.btLearn.setOnClickListener { learnBluetooth() }
+        b.btRemove.setOnClickListener {
+            if (!fake) SecurePrefs.setBtButton(this, null, null, 0)
+            renderKeys()
+        }
+    }
+
+    private fun renderKeys() {
+        val on = VolumeKeyService.isEnabled(this)
+        if (on) b.keysAccStatus.status(Level.OK, "Tasti attivi")
+        else b.keysAccStatus.status(Level.BAD, "Non ancora attivati")
+        b.keysAlertSeq.text = getString(R.string.keys_alert_seq, seqLabel(SecurePrefs.getVolAlertSeq(this), Config.VOL_ALERT_CHOICES))
+        b.keysHelpSeq.text = getString(R.string.keys_help_seq, seqLabel(SecurePrefs.getVolHelpSeq(this), Config.VOL_HELP_CHOICES))
+        b.keysDuration.text = getString(R.string.keys_duration, durationLabel(SecurePrefs.getAlertMinutes(this)))
+        val bt = if (fake) null else SecurePrefs.getBtName(this)
+        if (bt != null) b.btStatus.status(Level.OK, "Registrato: $bt (${VolumeKeyService.keyName(SecurePrefs.getBtKey(this))})")
+        else b.btStatus.status(Level.WARN, "Nessun pulsante registrato (facoltativo)")
+        b.btRemove.visibility = if (bt != null) View.VISIBLE else View.GONE
+        b.keysTest.text = getString(if (keysTesting) R.string.keys_test_stop else R.string.keys_test)
+    }
+
+    private fun startKeysTest() {
+        if (!VolumeKeyService.isEnabled(this)) { b.keysResult.status(Level.BAD, "Prima attiva i tasti in Accessibilità."); return }
+        stopKeysTest()
+        keysTesting = true
+        keyPresses.clear()
+        val btDesc = SecurePrefs.getBtDescriptor(this)
+        var btCount = 0
+        var btLast = 0L
+        b.keysResult.status(Level.WARN, "Fai la sequenza Allerta o Aiuto, oppure premi 3 volte il pulsante Bluetooth. Non parte nulla.")
+        VolumeKeyService.monitor = { k ->
+            runOnUiThread {
+                if (!keysTesting) return@runOnUiThread
+                val now = System.currentTimeMillis()
+                if (btDesc != null && k.descriptor == btDesc) {
+                    btCount = if (now - btLast > Config.BT_WINDOW_MS) 1 else btCount + 1
+                    btLast = now
+                    if (btCount >= Config.BT_HELP_PRESSES) { btCount = 0; b.keysResult.status(Level.OK, "Pulsante Bluetooth: AIUTO riconosciuto ✓ (prova)") }
+                    else b.keysResult.status(Level.WARN, "Pulsante Bluetooth premuto ($btCount di ${Config.BT_HELP_PRESSES})")
+                    return@runOnUiThread
+                }
+                val c = when (k.keyCode) {
+                    android.view.KeyEvent.KEYCODE_VOLUME_DOWN -> 'd'
+                    android.view.KeyEvent.KEYCODE_VOLUME_UP -> 'u'
+                    else -> { b.keysResult.status(Level.WARN, "Tasto ricevuto: ${VolumeKeyService.keyName(k.keyCode)} da ${k.deviceName}"); return@runOnUiThread }
+                }
+                keyPresses.removeAll { now - it.second > Config.VOL_WINDOW_MS }
+                keyPresses.add(Pair(c, now))
+                val tail = keyPresses.map { it.first }.joinToString("")
+                when {
+                    tail.endsWith(SecurePrefs.getVolHelpSeq(this)) -> { keyPresses.clear(); b.keysResult.status(Level.OK, "AIUTO riconosciuto ✓ (prova: non è partito nulla)") }
+                    tail.endsWith(SecurePrefs.getVolAlertSeq(this)) -> { keyPresses.clear(); b.keysResult.status(Level.OK, "ALLERTA riconosciuta ✓ (prova: non è partito nulla)") }
+                    else -> b.keysResult.status(Level.WARN, "Tasti: " + tail.map { if (it == 'u') "Su" else "Giù" }.joinToString(" · "))
+                }
+            }
+        }
+        renderKeys()
+        handler.postDelayed({ if (keysTesting) stopKeysTest() }, 60_000)
+    }
+
+    private fun stopKeysTest() {
+        if (!keysTesting && VolumeKeyService.monitor == null) return
+        keysTesting = false
+        VolumeKeyService.monitor = null
+        if (::b.isInitialized) renderKeys()
+    }
+
+    private fun learnBluetooth() {
+        if (fake) { b.btStatus.status(Level.OK, "Registrato"); return }
+        if (!VolumeKeyService.isEnabled(this)) { b.btStatus.status(Level.BAD, "Prima attiva i tasti in Accessibilità."); return }
+        stopKeysTest()
+        keysTesting = true
+        b.btStatus.status(Level.WARN, getString(R.string.bt_learning))
+        VolumeKeyService.monitor = { k ->
+            runOnUiThread {
+                if (!keysTesting) return@runOnUiThread
+                if (!k.external || k.descriptor == null) {
+                    b.btStatus.status(Level.WARN, "Questo è un tasto del telefono: premi il pulsante del telecomando Bluetooth.")
+                } else {
+                    SecurePrefs.setBtButton(this, k.descriptor, k.deviceName.ifBlank { "telecomando" }, k.keyCode)
+                    stopKeysTest()
+                    toast("Pulsante registrato. Ora provalo con \"${getString(R.string.keys_test)}\".")
+                }
+            }
+        }
+        renderKeys()
+        handler.postDelayed({
+            if (keysTesting && SecurePrefs.getBtDescriptor(this) == null) {
+                stopKeysTest()
+                b.btStatus.status(Level.BAD, "Nessun pulsante ricevuto. Il telecomando è collegato nelle impostazioni Bluetooth?")
+            } else if (keysTesting) stopKeysTest()
+        }, 15_000)
     }
 
     // ---- Attivazione vocale ----

@@ -16,7 +16,7 @@ object Notifications {
     const val CH_ALERTS = "alerts"
     const val ID_SERVICE = 1001
     const val ID_RESTORE = 2001
-    const val ID_DRIVE = 2002
+    const val ID_MAIL = 2002
 
     fun ensureChannels(c: Context) {
         val mgr = c.getSystemService(NotificationManager::class.java)
@@ -71,7 +71,7 @@ object Notifications {
     }
 
     fun restoreReminder(c: Context) = alert(c, ID_RESTORE, R.string.notif_restore_title, R.string.notif_restore_text)
-    fun driveReminder(c: Context) = alert(c, ID_DRIVE, R.string.notif_drive_title, R.string.notif_drive_text)
+    fun mailReminder(c: Context) = alert(c, ID_MAIL, R.string.notif_mail_title, R.string.notif_mail_text)
 
     fun cancel(c: Context, id: Int) = NotificationManagerCompat.from(c).cancel(id)
 }

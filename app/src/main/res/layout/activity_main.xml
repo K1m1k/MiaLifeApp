@@ -99,10 +99,6 @@
                 style="@style/BtnSecondary"
                 android:text="@string/main_test_full" />
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/appointmentButton"
-                style="@style/BtnSecondary"
-                android:text="@string/main_appointment" />
-            <com.google.android.material.button.MaterialButton
                 android:id="@+id/editButton"
                 style="@style/BtnSecondary"
                 android:text="@string/main_edit" />

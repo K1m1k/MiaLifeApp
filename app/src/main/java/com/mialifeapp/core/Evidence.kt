@@ -9,7 +9,7 @@ import java.util.Locale
 
 /**
  * Cartella privata delle prove sul telefono.
- * I file pronti stanno in "prove/", quelli già caricati su Drive vengono spostati in "prove/caricati/".
+ * I file pronti stanno in "prove/", quelli già inviati per email vengono spostati in "prove/caricati/".
  * I file ancora in scrittura finiscono in ".part" e non vengono caricati.
  */
 object Evidence {

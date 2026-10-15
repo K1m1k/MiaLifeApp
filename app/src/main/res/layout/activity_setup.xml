@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:max="8"
+            android:max="10"
             app:indicatorColor="@color/white"
             app:trackColor="#40FFFFFF"
             app:trackCornerRadius="4dp"
@@ -267,20 +267,101 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
         <LinearLayout
-            android:id="@+id/stepDrive"
+            android:id="@+id/stepMail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone">
-            <TextView style="@style/H1" android:text="@string/step_drive_title" />
-            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_drive_body" />
+            <TextView style="@style/H1" android:text="@string/step_mail_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_mail_body" />
             <com.google.android.material.card.MaterialCardView style="@style/Card">
                 <LinearLayout style="@style/CardInner">
-                    <TextView android:id="@+id/driveStatus" style="@style/Status" />
+                    <TextView android:id="@+id/mailStatus" style="@style/Status" />
+                    <EditText
+                        android:id="@+id/mailAddress" style="@style/Field"
+                        android:hint="@string/mail_address_hint"
+                        android:importantForAutofill="no" android:inputType="textEmailAddress" />
+                    <EditText
+                        android:id="@+id/mailPassword" style="@style/Field"
+                        android:hint="@string/mail_password_hint"
+                        android:importantForAutofill="no" android:inputType="textPassword" />
+                    <TextView android:id="@+id/mailNote" style="@style/Body" />
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/driveConnect"
-                        style="@style/BtnPrimary"
-                        android:text="@string/drive_connect" />
+                        android:id="@+id/mailHelp" style="@style/BtnText"
+                        android:text="@string/mail_help" />
+                    <TextView style="@style/CardTitle" android:layout_marginTop="12dp" android:text="@string/mail_server_title" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <EditText
+                            android:id="@+id/mailHost" style="@style/Field"
+                            android:layout_width="0dp" android:layout_weight="3"
+                            android:hint="@string/mail_host_hint"
+                            android:importantForAutofill="no" android:inputType="textUri" />
+                        <EditText
+                            android:id="@+id/mailPort" style="@style/Field"
+                            android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/mail_port_hint"
+                            android:importantForAutofill="no" android:inputType="number" android:maxLength="5" />
+                    </LinearLayout>
+                    <TextView style="@style/CardTitle" android:layout_marginTop="12dp" android:text="@string/mail_trusted_title" />
+                    <TextView style="@style/Body" android:text="@string/mail_trusted_body" />
+                    <EditText
+                        android:id="@+id/mailTrusted" style="@style/Field"
+                        android:hint="@string/mail_trusted_hint"
+                        android:importantForAutofill="no" android:inputType="textEmailAddress" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/mailTest" style="@style/BtnPrimary"
+                        android:text="@string/mail_test" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/stepKeys"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView style="@style/H1" android:text="@string/step_keys_title" />
+            <TextView style="@style/Body" android:layout_marginBottom="16dp" android:text="@string/step_keys_body" />
+            <com.google.android.material.card.MaterialCardView style="@style/Card">
+                <LinearLayout style="@style/CardInner">
+                    <TextView style="@style/CardTitle" android:text="@string/keys_acc_title" />
+                    <TextView style="@style/Body" android:text="@string/keys_acc_body" />
+                    <TextView android:id="@+id/keysAccStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/keysAccOpen" style="@style/BtnPrimary"
+                        android:text="@string/keys_acc_open" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView style="@style/Card" android:layout_marginTop="14dp">
+                <LinearLayout style="@style/CardInner">
+                    <TextView style="@style/CardTitle" android:text="@string/keys_seq_title" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/keysAlertSeq" style="@style/BtnSecondary" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/keysHelpSeq" style="@style/BtnSecondary" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/keysDuration" style="@style/BtnSecondary" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/keysTest" style="@style/BtnPrimary"
+                        android:text="@string/keys_test" />
+                    <TextView android:id="@+id/keysResult" style="@style/Status" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+            <com.google.android.material.card.MaterialCardView style="@style/Card" android:layout_marginTop="14dp">
+                <LinearLayout style="@style/CardInner">
+                    <TextView style="@style/CardTitle" android:text="@string/bt_title" />
+                    <TextView style="@style/Body" android:text="@string/bt_body" />
+                    <TextView android:id="@+id/btStatus" style="@style/Status" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btLearn" style="@style/BtnSecondary"
+                        android:text="@string/bt_learn" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btRemove" style="@style/BtnText"
+                        android:text="@string/bt_remove" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>

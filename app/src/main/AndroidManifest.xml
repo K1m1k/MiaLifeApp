@@ -4,7 +4,7 @@
 
     <!-- Richiesta di aiuto -->
     <uses-permission android:name="android.permission.SEND_SMS" />
-    <!-- Caricamento prove su Google Drive -->
+    <!-- Invio delle prove per email -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
@@ -79,7 +79,7 @@
             android:theme="@style/Theme.MiaLifeApp.Dark"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Unico servizio: ascolto colpetti + emergenza (registrazione, posizione, SMS, Drive) -->
+        <!-- Unico servizio: allerta (colpetti, frase) + emergenza (registrazione, posizione, SMS, email) -->
         <service
             android:name=".core.ProtectionService"
             android:exported="false"

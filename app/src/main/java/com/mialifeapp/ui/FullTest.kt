@@ -15,11 +15,11 @@ import com.mialifeapp.core.Messages
 import com.mialifeapp.core.Perms
 import com.mialifeapp.core.SecurePrefs
 import com.mialifeapp.core.SmsHelper
-import com.mialifeapp.core.drive.DriveUploader
+import com.mialifeapp.core.mail.EmailUploader
 import java.util.concurrent.Executors
 
 /**
- * "Prova completa": posizione, registrazione di pochi secondi, caricamento su Drive.
+ * "Prova completa": posizione, registrazione di pochi secondi, invio per email.
  * Gli SMS di prova partono solo se l'utente lo conferma alla fine. Nessuna emergenza viene avviata.
  */
 class FullTest(private val a: AppCompatActivity) {
@@ -58,15 +58,15 @@ class FullTest(private val a: AppCompatActivity) {
     }
 
     private fun uploadStep() {
-        progress.setMessage("3/3  Carico su Google Drive…")
+        progress.setMessage("3/3  Invio per email…")
         val ctx = a.applicationContext
         Executors.newSingleThreadExecutor().execute {
-            val r = DriveUploader.uploadPending(ctx)
+            val r = EmailUploader.uploadPending(ctx)
             handler.post { finish(r) }
         }
     }
 
-    private fun finish(r: DriveUploader.Result) {
+    private fun finish(r: EmailUploader.Result) {
         if (a.isFinishing) return
         progress.dismiss()
         val sb = StringBuilder()
@@ -75,11 +75,13 @@ class FullTest(private val a: AppCompatActivity) {
         sb.append(if (micOk) "✓  Microfono e registrazione funzionano" else "✗  Registrazione non riuscita" + (micError?.let { " ($it)" } ?: ""))
         sb.append("\n\n")
         sb.append(when (r) {
-            DriveUploader.Result.OK, DriveUploader.Result.NOTHING -> "✓  Caricamento su Google Drive riuscito"
-            DriveUploader.Result.NEEDS_AUTH -> "✗  Google Drive da ricollegare (Modifica configurazione › Google Drive)"
-            DriveUploader.Result.FAILED -> "!  Caricamento non riuscito ora (rete?). I file restano sul telefono e verranno caricati appena possibile."
+            EmailUploader.Result.OK, EmailUploader.Result.NOTHING -> "✓  Email con le prove inviata: controlla la tua casella"
+            EmailUploader.Result.NEEDS_AUTH -> "✗  Password dell'email rifiutata (Modifica configurazione › Email delle prove)"
+            EmailUploader.Result.NOT_CONFIGURED -> "✗  Email delle prove non configurata (Modifica configurazione)"
+            EmailUploader.Result.FAILED -> "!  Invio non riuscito ora" + (EmailUploader.lastError?.let { " ($it)" } ?: "") +
+                ". I file restano sul telefono e partono appena possibile."
         })
-        val allOk = loc != null && micOk && (r == DriveUploader.Result.OK || r == DriveUploader.Result.NOTHING)
+        val allOk = loc != null && micOk && (r == EmailUploader.Result.OK || r == EmailUploader.Result.NOTHING)
         sb.append("\n\n")
         sb.append(if (allOk) "Su questo telefono funziona tutto." else "Sistema i punti segnati e ripeti la prova.")
         MaterialAlertDialogBuilder(a)

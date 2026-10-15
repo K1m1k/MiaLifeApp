@@ -95,11 +95,7 @@ object SecurePrefs {
     fun isArmed(c: Context) = getBool(c, "armed")
     fun setArmed(c: Context, v: Boolean) = putBool(c, "armed", v)
 
-    /** Fase 1: "allerta" attivata dall'utente (telefono in guardia, nessun invio ancora). */
-    fun isAlert(c: Context) = getBool(c, "alert")
-    fun setAlert(c: Context, v: Boolean) = putBool(c, "alert", v)
-
-    /** Scadenza automatica dell'allerta (ms); 0 = nessuna. */
+    /** Scadenza automatica dell'allerta, Fase 1 (ms); 0 = nessuna. L'allerta attiva è [isArmed]. */
     fun getAlertUntil(c: Context) = getLong(c, "alert_until")
     fun setAlertUntil(c: Context, t: Long) = putStr(c, "alert_until", if (t > 0) t.toString() else null)
 
@@ -108,9 +104,9 @@ object SecurePrefs {
     fun setConsentVersion(c: Context, v: Int) = putStr(c, "consent", v.toString())
 
     /** Sequenze del tasto volume: "d"=giù, "u"=su. Allerta e Aiuto. */
-    fun getVolAlertSeq(c: Context) = getStr(c, "vol_alert") ?: "dddd"
+    fun getVolAlertSeq(c: Context) = getStr(c, "vol_alert") ?: Config.VOL_ALERT_DEFAULT
     fun setVolAlertSeq(c: Context, v: String) = putStr(c, "vol_alert", v)
-    fun getVolHelpSeq(c: Context) = getStr(c, "vol_help") ?: "uuuu"
+    fun getVolHelpSeq(c: Context) = getStr(c, "vol_help") ?: Config.VOL_HELP_DEFAULT
     fun setVolHelpSeq(c: Context, v: String) = putStr(c, "vol_help", v)
 
     fun isEmergencyActive(c: Context) = getBool(c, "emergency")
@@ -173,17 +169,39 @@ object SecurePrefs {
     fun getVoiceThreshold(c: Context): Int = getStr(c, "voice_thr")?.toIntOrNull()?.coerceIn(0, 100) ?: Config.VOICE_SPEAKER_THRESHOLD_DEFAULT
     fun setVoiceThreshold(c: Context, v: Int) = putStr(c, "voice_thr", v.coerceIn(0, 100).toString())
 
-    /** Istante (ms) di fine della Modalità appuntamento; 0 = spenta. */
-    fun getAppointmentUntil(c: Context): Long = getLong(c, "appt_until")
-    fun setAppointmentUntil(c: Context, t: Long) = putStr(c, "appt_until", if (t > 0) t.toString() else null)
 
-    // ---- Google Drive ----
-    fun getDriveAccount(c: Context): String? = getStr(c, "drive_account")
-    fun setDriveAccount(c: Context, v: String?) = putStr(c, "drive_account", v)
-    fun getDriveFolderId(c: Context): String? = getStr(c, "drive_folder")
-    fun setDriveFolderId(c: Context, v: String?) = putStr(c, "drive_folder", v)
-    fun isDriveOk(c: Context) = getBool(c, "drive_ok")
-    fun setDriveOk(c: Context, v: Boolean) = putBool(c, "drive_ok", v)
+    // ---- Email delle prove (al posto di Google Drive) ----
+    fun getMailAddress(c: Context): String? = getStr(c, "mail_addr")
+    fun setMailAddress(c: Context, v: String?) = putStr(c, "mail_addr", v?.trim()?.ifEmpty { null })
+    /** Password (o "password per le app") della casella: salvata solo cifrata. */
+    fun getMailPassword(c: Context): String? = getStr(c, "mail_pw")
+    fun setMailPassword(c: Context, v: String?) = putStr(c, "mail_pw", v?.ifEmpty { null })
+    fun getMailHost(c: Context): String? = getStr(c, "mail_host")
+    fun setMailHost(c: Context, v: String?) = putStr(c, "mail_host", v?.trim()?.ifEmpty { null })
+    fun getMailPort(c: Context): Int = getStr(c, "mail_port")?.toIntOrNull() ?: 465
+    fun setMailPort(c: Context, v: Int) = putStr(c, "mail_port", v.toString())
+    /** Email di persone di fiducia che ricevono anche loro le prove (facoltative, massimo 2). */
+    fun getMailTrusted(c: Context): List<String> =
+        (getStr(c, "mail_trusted") ?: "").split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    fun setMailTrusted(c: Context, list: List<String>) = putStr(c, "mail_trusted", list.joinToString(",").ifEmpty { null })
+    /** Email di prova arrivata: la casella funziona. */
+    fun isMailOk(c: Context) = getBool(c, "mail_ok")
+    fun setMailOk(c: Context, v: Boolean) = putBool(c, "mail_ok", v)
+
+    // ---- Allerta (Fase 1) ----
+    /** Durata dell'allerta quando si attiva dai tasti (minuti). */
+    fun getAlertMinutes(c: Context): Int = getStr(c, "alert_min")?.toIntOrNull() ?: Config.ALERT_DEFAULT_MIN
+    fun setAlertMinutes(c: Context, v: Int) = putStr(c, "alert_min", v.toString())
+
+    // ---- Pulsante Bluetooth (telecomando / portachiavi) ----
+    fun getBtDescriptor(c: Context): String? = getStr(c, "bt_desc")
+    fun getBtName(c: Context): String? = getStr(c, "bt_name")
+    fun getBtKey(c: Context): Int = getStr(c, "bt_key")?.toIntOrNull() ?: 0
+    fun setBtButton(c: Context, descriptor: String?, name: String?, key: Int) {
+        putStr(c, "bt_desc", descriptor)
+        putStr(c, "bt_name", name)
+        putStr(c, "bt_key", if (descriptor == null) null else key.toString())
+    }
 
     // ---- coda SMS ----
     data class QueuedSms(val number: String, val text: String)

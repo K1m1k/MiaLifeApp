@@ -11,8 +11,8 @@ android {
         applicationId = "com.mialifeapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "3.0.1"
+        versionCode = 9
+        versionName = "3.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.play.services.location)
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

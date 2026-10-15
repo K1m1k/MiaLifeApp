@@ -11,9 +11,9 @@ import android.os.Looper
 import android.os.PowerManager
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
-import com.mialifeapp.core.drive.DriveUploadWorker
+import com.mialifeapp.core.mail.EmailUploadWorker
+import com.mialifeapp.core.mail.EmailUploader
 import com.mialifeapp.core.voice.VoiceEngine
-import com.mialifeapp.core.drive.DriveUploader
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -24,8 +24,10 @@ import java.util.concurrent.Executors
  * Android concede microfono e posizione e li mantiene finché il servizio resta vivo.
  *
  * Stati:
- *  - PRONTO: ascolta solo i colpetti (accelerometro). Non registra, nessun pallino verde.
- *  - EMERGENZA: SMS + posizione, registrazione a pezzi, caricamento su Drive ogni X minuti,
+ *  - A RIPOSO: il servizio è spento. Resta attivo solo [VolumeKeyService] (tasti volume e pulsante Bluetooth).
+ *  - ALLERTA (Fase 1): ascolta i colpetti e, se attivata, la frase vocale. Nessun invio.
+ *    Finisce da sola alla scadenza scelta, oppure con la sequenza Allerta ripetuta + PIN.
+ *  - AIUTO (Fase 2, EMERGENZA): SMS + posizione, registrazione a pezzi, invio per email ogni X minuti,
  *    posizione + SMS ogni Y minuti. Tutto dentro questo servizio, senza avviarne altri.
  *
  * Modalità RIDOTTA: se il servizio viene fatto ripartire senza l'app aperta (riavvio del telefono,
@@ -41,9 +43,10 @@ class ProtectionService : Service() {
         const val ACTION_STOP_EMERGENCY = "com.mialifeapp.STOP_EMERGENCY"
         const val ACTION_COERCED = "com.mialifeapp.COERCED"
         const val ACTION_RELOAD = "com.mialifeapp.RELOAD"
-        const val ACTION_APPOINTMENT = "com.mialifeapp.APPOINTMENT"
         const val ACTION_ALERT = "com.mialifeapp.ALERT"   // Fase 1: allerta
         const val ACTION_HELP = "com.mialifeapp.HELP"     // Fase 2: aiuto
+        /** Durata dell'allerta in minuti, se scelta dall'utente (altrimenti quella della configurazione). */
+        const val EXTRA_MINUTES = "minutes"
 
         @Volatile var running = false
             private set
@@ -53,12 +56,14 @@ class ProtectionService : Service() {
         /** Messo a true dall'app durante le prove della sequenza, per non far partire un'emergenza vera. */
         @Volatile var pauseDetection = false
 
-        fun send(c: Context, action: String) {
-            ContextCompat.startForegroundService(c, Intent(c, ProtectionService::class.java).setAction(action))
+        fun send(c: Context, action: String, minutes: Int = 0) {
+            val i = Intent(c, ProtectionService::class.java).setAction(action)
+            if (minutes > 0) i.putExtra(EXTRA_MINUTES, minutes)
+            ContextCompat.startForegroundService(c, i)
         }
 
-        fun trySend(c: Context, action: String): Boolean = try {
-            send(c, action); true
+        fun trySend(c: Context, action: String, minutes: Int = 0): Boolean = try {
+            send(c, action, minutes); true
         } catch (e: Exception) {
             false
         }
@@ -92,10 +97,17 @@ class ProtectionService : Service() {
             ACTION_DISARM -> if (!SecurePrefs.isEmergencyActive(this)) {
                 SecurePrefs.setArmed(this, false)
                 SecurePrefs.setFakeDisarmed(this, false)
+                SecurePrefs.setAlertUntil(this, 0)
             }
             ACTION_ALERT -> {
+                val now = System.currentTimeMillis()
+                val chosen = intent?.getIntExtra(EXTRA_MINUTES, 0) ?: 0
+                val wasArmed = SecurePrefs.isArmed(this) && SecurePrefs.getAlertUntil(this) > now
                 SecurePrefs.setArmed(this, true)
                 SecurePrefs.setFakeDisarmed(this, false)
+                // Scadenza: quella scelta ora, oppure quella della configurazione se l'allerta parte adesso.
+                if (chosen > 0) SecurePrefs.setAlertUntil(this, now + chosen * 60_000L)
+                else if (!wasArmed) SecurePrefs.setAlertUntil(this, now + SecurePrefs.getAlertMinutes(this) * 60_000L)
             }
             ACTION_HELP -> if (!SecurePrefs.isEmergencyActive(this)) startEmergency(coerced = false)
             ACTION_STOP_EMERGENCY -> stopEmergency()
@@ -103,6 +115,11 @@ class ProtectionService : Service() {
             ACTION_RELOAD -> { listener?.stop(); listener = null } // riparte sotto con sequenza e sensibilità nuove
         }
 
+        // Allerta scaduta (anche durante un riavvio): si torna a riposo. Un'emergenza in corso non si ferma mai da sola.
+        val until = SecurePrefs.getAlertUntil(this)
+        if (SecurePrefs.isArmed(this) && until in 1..System.currentTimeMillis() && !SecurePrefs.isEmergencyActive(this)) {
+            endAlert()
+        }
         val armed = SecurePrefs.isArmed(this)
         val emergency = SecurePrefs.isEmergencyActive(this)
         if (!armed && !emergency) {
@@ -112,9 +129,31 @@ class ProtectionService : Service() {
 
         ensureListening()
         if (emergency && !emergencyRunning) resumeEmergency()
+        scheduleAlertEnd()
         manageVoice()
         if (!degraded) Notifications.cancel(this, Notifications.ID_RESTORE)
         return START_STICKY
+    }
+
+    // ------------------------------------------------------------------ fine allerta a tempo
+
+    private val alertEnd = Runnable {
+        if (!SecurePrefs.isEmergencyActive(this)) {
+            endAlert()
+            shutdown()
+        }
+    }
+
+    private fun scheduleAlertEnd() {
+        handler.removeCallbacks(alertEnd)
+        val until = SecurePrefs.getAlertUntil(this)
+        if (until > 0 && SecurePrefs.isArmed(this)) handler.postDelayed(alertEnd, (until - System.currentTimeMillis()).coerceAtLeast(0))
+    }
+
+    private fun endAlert() {
+        SecurePrefs.setArmed(this, false)
+        SecurePrefs.setFakeDisarmed(this, false)
+        SecurePrefs.setAlertUntil(this, 0)
     }
 
     // ------------------------------------------------------------------ foreground
@@ -188,7 +227,7 @@ class ProtectionService : Service() {
         SecurePrefs.setEmergencyStart(this, System.currentTimeMillis())
         SecurePrefs.setCoerced(this, coerced)
         Notifications.cancel(this, Notifications.ID_RESTORE)
-        Notifications.cancel(this, Notifications.ID_DRIVE)
+        Notifications.cancel(this, Notifications.ID_MAIL)
         // 1) prima di tutto la richiesta di aiuto: non dipende dal microfono
         if (coerced && !Messages.hasCode(this)) SmsHelper.sendToAll(this, Messages.coerced(this))
         sendLocation(Messages.Kind.HELP)
@@ -235,9 +274,9 @@ class ProtectionService : Service() {
     private fun uploadNow() {
         val ctx = applicationContext
         io.execute {
-            val r = DriveUploader.uploadPending(ctx)
+            val r = EmailUploader.uploadPending(ctx)
             // Senza rete: il lavoro di riserva parte da solo appena torna la linea.
-            if (r == DriveUploader.Result.FAILED || r == DriveUploader.Result.NEEDS_AUTH) DriveUploadWorker.enqueue(ctx)
+            if (r == EmailUploader.Result.FAILED || r == EmailUploader.Result.NEEDS_AUTH) EmailUploadWorker.enqueue(ctx)
         }
     }
 
@@ -288,25 +327,22 @@ class ProtectionService : Service() {
         matcher?.reset()
         if (wasRunning) {
             uploadNow()
-            DriveUploadWorker.enqueue(this, chain = true)
+            EmailUploadWorker.enqueue(this, chain = true)
         }
     }
 
-    // ------------------------------------------------------------------ ascolto vocale (Modalità appuntamento)
+    // ------------------------------------------------------------------ ascolto vocale (durante l'allerta)
 
-    private val appointmentEnd = Runnable { manageVoice() }
-
-    /** Avvia o ferma l'ascolto vocale secondo lo stato. L'emergenza vocale non parte mai durante una vera emergenza. */
+    /**
+     * La frase vocale è un modo per passare alla Fase 2: si ascolta solo durante l'allerta,
+     * mai a riposo e mai durante una vera emergenza.
+     */
     private fun manageVoice() {
-        handler.removeCallbacks(appointmentEnd)
-        val now = System.currentTimeMillis()
-        val until = SecurePrefs.getAppointmentUntil(this)
         val active = SecurePrefs.isArmed(this) &&
             !SecurePrefs.isEmergencyActive(this) &&
             !degraded &&
             SecurePrefs.isVoiceEnabled(this) &&
-            SecurePrefs.hasVoiceTemplates(this) &&
-            until > now
+            SecurePrefs.hasVoiceTemplates(this)
         if (active) {
             if (voice == null) {
                 val engine = VoiceEngine(
@@ -317,11 +353,9 @@ class ProtectionService : Service() {
                 )
                 if (engine.start()) voice = engine
             }
-            handler.postDelayed(appointmentEnd, (until - now).coerceAtMost(60 * 60_000L))
         } else {
             voice?.stop()
             voice = null
-            if (until in 1..now) SecurePrefs.setAppointmentUntil(this, 0)
         }
     }
 

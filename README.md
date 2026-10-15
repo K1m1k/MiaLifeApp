@@ -1,19 +1,35 @@
 # MiaLifeApp
 
-App Android di sicurezza personale. Chi la usa configura contatti di fiducia, un PIN e una sequenza
-di colpetti sul retro del telefono. Quando batte la sequenza (schermo spento, nessun segnale):
+App Android di sicurezza personale, senza server. Funziona in **due fasi**:
 
-1. parte subito un **SMS di aiuto con la posizione** ai contatti;
-2. inizia la **registrazione audio a pezzi da 15 s**;
-3. ogni **2 minuti** i pezzi vengono caricati sul **Google Drive dell'utente** (cartella `MiaLifeApp - Prove`);
-4. ogni **5 minuti** si rileva di nuovo la posizione e si manda l'aggiornamento ai contatti;
-5. senza rete SMS e caricamenti vanno in coda e ripartono appena torna la linea; la registrazione non si ferma.
+- **A riposo** il telefono non fa nulla. Resta attivo solo il servizio di Accessibilità che ascolta i tasti.
+- **Fase 1 – Allerta**: sequenza *Allerta* del tasto volume (anche dalla tasca) o pulsante nell'app.
+  Nessun invio: si attivano colpetti sul retro e frase vocale. Finisce alla scadenza scelta oppure
+  rifacendo la sequenza Allerta + PIN.
+- **Fase 2 – Aiuto**: sequenza *Aiuto* del volume, colpetti, frase vocale (solo in allerta) o 3 pressioni
+  di un pulsante Bluetooth (telecomando per selfie). Allora:
+  1. parte subito un **SMS di aiuto con la posizione** ai contatti;
+  2. inizia la **registrazione audio a pezzi da 15 s**;
+  3. ogni **2 minuti** i pezzi vengono mandati **per email** alla casella dell'utente (e a 2 email di fiducia facoltative);
+  4. ogni **5 minuti** si rileva di nuovo la posizione e si manda l'aggiornamento ai contatti;
+  5. senza rete SMS ed email vanno in coda e ripartono appena torna la linea; la registrazione non si ferma.
 
 Quando è fuori pericolo, l'utente apre l'app: vede uno **schermo nero**, tocca in basso, inserisce il
-**PIN** e l'emergenza si ferma. I contatti ricevono "Sono al sicuro" e l'app torna **pronta**.
+**PIN** e l'emergenza si ferma. I contatti ricevono "Sono al sicuro".
 
 > ⚠️ Nessuna app è infallibile. MiaLifeApp può avere difetti o non funzionare su alcuni modelli di
 > telefono. Non sostituisce il 112.
+
+## Novità della versione 3.1
+- **Email al posto di Google Drive**: niente Google Cloud. Nella configurazione si scrivono email e
+  password (per Gmail/Yahoo/iCloud la "password per le app"); server e porta si compilano da soli.
+  Invio sempre cifrato (porta 465 o 587 con STARTTLS). Outlook/Hotmail non sono supportati
+  (Microsoft non consente più l'invio con password).
+- **Passo "Tasti volume e pulsante Bluetooth"** nella configurazione: attivazione dell'Accessibilità,
+  scelta delle sequenze Allerta/Aiuto, durata dell'allerta, prova che non invia nulla, registrazione del
+  pulsante Bluetooth.
+- **Frase vocale** ascoltata durante l'allerta (non più "Modalità appuntamento").
+- **Fine allerta** a tempo oppure con la stessa sequenza + PIN.
 
 ---
 
@@ -40,35 +56,10 @@ Sul tuo computer, in **Android Studio**: `File › Open` e scegli la cartella `M
 Attendi la sincronizzazione Gradle (scarica anche la nuova libreria `play-services-auth`).
 Se Android Studio propone di aggiornare AGP/Gradle puoi accettare.
 
-## 2. Collegare Google Drive (obbligatorio, una volta sola)
-Serve perché Google permetta all'app di caricare file sul Drive dell'utente. Si fa sul sito
-**https://console.cloud.google.com** con il tuo account Google.
-
-1. **Crea un progetto** (in alto, selettore progetti › *Nuovo progetto*), nome per esempio `MiaLifeApp`.
-2. **Attiva l'API di Drive**: menu *API e servizi › Libreria*, cerca **Google Drive API** › *Abilita*.
-3. **Schermata di consenso OAuth**: *API e servizi › Schermata consenso OAuth*
-   - tipo utente **Esterno**, nome app `MiaLifeApp`, la tua email come contatto;
-   - ambiti: aggiungi `.../auth/drive.file` (è un ambito "non sensibile");
-   - **Utenti di prova**: aggiungi gli account Google tuoi e dei volontari.
-4. **Impronta SHA-1 della chiave di firma**. Nel **terminale di Android Studio** (scheda *Terminal*
-   in basso, già posizionato nella cartella del progetto) esegui:
-   ```
-   ./gradlew signingReport
-   ```
-   Su Windows: `gradlew signingReport`. Copia il valore **SHA1** della variante `debug`.
-5. **Credenziale Android**: *API e servizi › Credenziali › Crea credenziali › ID client OAuth*
-   - tipo **Android**, nome pacchetto `com.mialifeapp`, incolla lo **SHA-1** del punto 4.
-   - Quando firmerai la versione definitiva (release) aggiungi un secondo ID client con lo SHA-1 della chiave release.
-
-Non serve copiare nessun codice nell'app: Google riconosce l'app da nome pacchetto + SHA-1.
-Se nella guida compare "codice 10", lo SHA-1 o il nome pacchetto non corrispondono.
-
-> Finché l'app su Google Cloud è in modalità **"Test"**, solo gli utenti di prova possono collegarsi.
-> Per tutti gli altri va pubblicata (*Pubblica app*); con il solo ambito `drive.file` non serve la
-> verifica approfondita di Google.
-
-Nella versione di **debug** c'è un pulsante "Salta" nel passo Drive, per provare il resto dell'app
-anche prima di configurare Google Cloud. Nella versione release non c'è.
+## 2. Email delle prove
+Non serve configurare nulla fuori dall'app. Per Gmail: account Google › Sicurezza › Verifica in due
+passaggi attiva › "Password per le app" › crea "MiaLifeApp" e incolla le 16 lettere nell'app.
+Nella versione di **debug** c'è un pulsante "Salta" nel passo Email, per provare il resto dell'app.
 
 ## 3. Installare sul telefono
 - Sul telefono: `Impostazioni › Info telefono`, tocca 7 volte **Numero build**, poi in *Opzioni
@@ -80,7 +71,7 @@ anche prima di configurare Google Cloud. Nella versione release non c'è.
 2. Nel passo Sequenza usa **Prova la sequenza** finché viene riconosciuta sempre.
 3. Nella schermata principale tocca **Attiva protezione**, poi **Prova completa**.
 4. In un posto tranquillo: schermo spento, telefono in tasca, batti la sequenza.
-   Controlla che arrivi l'SMS e che su Drive compaiano i file nella cartella `MiaLifeApp - Prove`.
+   Controlla che arrivi l'SMS e, entro 2 minuti, l'email con gli audio.
 5. Apri l'app: schermo nero › tocca in basso › PIN › deve arrivare "Sono al sicuro".
 6. Ripeti con il **PIN di coercizione**: l'app deve sembrare spenta ma i contatti ricevono l'avviso
    e la registrazione continua. Per chiudere davvero: *Modifica configurazione* o *Disattiva* con il PIN vero.
@@ -92,7 +83,8 @@ anche prima di configurare Google Cloud. Nella versione release non c'è.
 - `core/ProtectionService` – unico servizio: stato PRONTO (ascolto) ed EMERGENZA.
 - `core/TapListener`, `core/TapPattern` – rilevamento colpetti e riconoscimento sequenza.
 - `core/AudioChunkRecorder`, `core/Evidence` – registrazione a pezzi e cartella prove (privata).
-- `core/drive/*` – autorizzazione Google, caricamento su Drive, caricamento di riserva.
+- `core/mail/*` – invio SMTP cifrato, server noti, invio delle prove e invio di riserva.
+- `core/VolumeKeyService` – tasti volume e pulsante Bluetooth (Accessibilità).
 - `core/SmsHelper`, `SmsResultReceiver`, `SmsRetryWorker` – SMS con coda e ritentativi.
 - `core/Crypto`, `core/SecurePrefs`, `core/Pin` – dati solo cifrati, PIN salvati come impronta.
 - `core/EmergencyControl` – fine emergenza con PIN e coercizione.
@@ -100,7 +92,7 @@ anche prima di configurare Google Cloud. Nella versione release non c'è.
 - `core/BatteryHelper` – risparmio energetico e impostazioni dei produttori.
 - `ui/WelcomeActivity`, `ui/SetupActivity`, `ui/MainActivity`, `ui/EmergencyActivity`, `ui/FullTest`.
 
-Valori modificabili in `core/Config.kt` (durata pezzi audio, intervallo Drive, intervallo posizione).
+Valori modificabili in `core/Config.kt` (durata pezzi audio, intervallo email, intervallo posizione, sequenze, durate allerta).
 
 ## Limiti tecnici (onesti)
 - Da Android 12 compare il **pallino verde** quando il microfono registra: si vede solo a schermo acceso.
@@ -114,12 +106,11 @@ Valori modificabili in `core/Config.kt` (durata pezzi audio, intervallo Drive, i
   background e servizi in primo piano; e un `targetSdk` aggiornato a quello richiesto da Google al
   momento della pubblicazione.
 
-## Attivazione vocale — "Modalità appuntamento"
+## Attivazione vocale
 - **Nessun download e nessun vocabolario**: l'utente registra la sua frase 5 volte; l'app la riconosce
   confrontando l'audio (impronta MFCC con allineamento nel tempo) con tutte le registrazioni.
   Il confronto tiene conto insieme della frase e della voce di chi la dice.
-- Va accesa **a tempo** (1, 2 o 4 ore) dalla schermata principale: tiene il microfono acceso
-  (pallino verde, più batteria). I colpetti restano sempre attivi.
+- Si ascolta **solo durante l'allerta** (Fase 1): microfono acceso, pallino verde, più batteria.
 - Nel passo "Attivazione vocale" c'è una prova che mostra la somiglianza in % e se "scatterebbe";
   la soglia è regolabile e va tarata sul telefono, anche in tasca e con rumore.
 

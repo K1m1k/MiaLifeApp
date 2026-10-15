@@ -1,4 +1,4 @@
-package com.mialifeapp.core.drive
+package com.mialifeapp.core.mail
 
 import android.content.Context
 import androidx.work.BackoffPolicy
@@ -12,20 +12,22 @@ import androidx.work.WorkerParameters
 import com.mialifeapp.core.Notifications
 import java.util.concurrent.TimeUnit
 
-/** Caricamento di riserva: parte appena torna internet, anche se il servizio è fermo. */
-class DriveUploadWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
-    override fun doWork(): Result = when (DriveUploader.uploadPending(applicationContext)) {
-        DriveUploader.Result.OK, DriveUploader.Result.NOTHING -> Result.success()
-        DriveUploader.Result.NEEDS_AUTH -> { Notifications.driveReminder(applicationContext); Result.success() }
-        DriveUploader.Result.FAILED -> Result.retry()
+/** Invio di riserva: parte appena torna internet, anche se il servizio è fermo. */
+class EmailUploadWorker(ctx: Context, params: WorkerParameters) : Worker(ctx, params) {
+    override fun doWork(): Result = when (EmailUploader.uploadPending(applicationContext)) {
+        EmailUploader.Result.OK, EmailUploader.Result.NOTHING -> Result.success()
+        EmailUploader.Result.NEEDS_AUTH, EmailUploader.Result.NOT_CONFIGURED -> {
+            Notifications.mailReminder(applicationContext); Result.success()
+        }
+        EmailUploader.Result.FAILED -> Result.retry()
     }
 
     companion object {
-        private const val NAME = "drive_upload"
+        private const val NAME = "email_upload"
 
         /** [chain] = true accoda un ulteriore giro dopo quello in corso (usato a fine emergenza). */
         fun enqueue(c: Context, chain: Boolean = false) {
-            val req = OneTimeWorkRequestBuilder<DriveUploadWorker>()
+            val req = OneTimeWorkRequestBuilder<EmailUploadWorker>()
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()

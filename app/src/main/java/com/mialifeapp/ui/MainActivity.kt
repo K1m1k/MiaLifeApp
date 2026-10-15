@@ -23,10 +23,16 @@ import java.util.Date
 import java.util.Locale
 import com.mialifeapp.core.TapListener
 import com.mialifeapp.core.TapMatcher
+import com.mialifeapp.core.VolumeKeyService
 import com.mialifeapp.databinding.ActivityMainBinding
 
-/** Schermata principale: stato, attiva/disattiva, controlli, prove. */
+/** Schermata principale: fase attuale (riposo / allerta / aiuto), controlli, prove. */
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        /** Aperta dalla sequenza Allerta ripetuta: chiede subito il PIN per terminare l'allerta. */
+        const val EXTRA_END_ALERT = "end_alert"
+    }
 
     private lateinit var b: ActivityMainBinding
     private val handler = Handler(Looper.getMainLooper())
@@ -44,7 +50,6 @@ class MainActivity : AppCompatActivity() {
         b.armButton.setOnClickListener { onMainButton() }
         b.testSeqButton.setOnClickListener { testSequence() }
         b.testFullButton.setOnClickListener { FullTest(this).run() }
-        b.appointmentButton.setOnClickListener { onAppointment() }
         b.editButton.setOnClickListener { onEdit() }
         b.howtoButton.setOnClickListener {
             MaterialAlertDialogBuilder(this)
@@ -53,6 +58,11 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton(R.string.ok, null)
                 .show()
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 
     override fun onResume() {
@@ -65,12 +75,22 @@ class MainActivity : AppCompatActivity() {
         }
         // App aperta sullo schermo = momento in cui Android concede microfono e posizione:
         // se la protezione è attiva ma ridotta o spenta, la riattiviamo completamente.
-        if (SecurePrefs.isArmed(this) && (!ProtectionService.running || ProtectionService.degraded) &&
+        val until = SecurePrefs.getAlertUntil(this)
+        val expired = until in 1..System.currentTimeMillis()
+        if (SecurePrefs.isArmed(this) && expired && !SecurePrefs.isEmergencyActive(this)) {
+            // Allerta scaduta mentre il servizio era fermo: si torna a riposo.
+            SecurePrefs.setArmed(this, false)
+            SecurePrefs.setAlertUntil(this, 0)
+        } else if (SecurePrefs.isArmed(this) && (!ProtectionService.running || ProtectionService.degraded) &&
             Perms.hasEssentials(this)) {
             ProtectionService.trySend(this, ProtectionService.ACTION_ALERT)
         }
         refresh()
         handler.postDelayed(refreshLater, 800)
+        if (intent?.getBooleanExtra(EXTRA_END_ALERT, false) == true) {
+            intent.removeExtra(EXTRA_END_ALERT)
+            if (shownState() != Shown.OFF) disarm()
+        }
     }
 
     override fun onPause() {
@@ -99,7 +119,10 @@ class MainActivity : AppCompatActivity() {
             }
             Shown.ON -> {
                 b.stateTitle.text = "●  " + getString(R.string.phase_alert)
-                b.stateSub.text = getString(R.string.main_armed_sub)
+                val until = SecurePrefs.getAlertUntil(this)
+                b.stateSub.text = if (until > 0)
+                    getString(R.string.main_armed_until, SimpleDateFormat("HH:mm", Locale.ITALY).format(Date(until)))
+                else getString(R.string.main_armed_sub)
                 b.armButton.text = getString(R.string.main_disarm)
             }
             Shown.REDUCED -> {
@@ -109,44 +132,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         renderChecks()
-        renderAppointment()
-    }
-
-    private fun renderAppointment() {
-        val ready = SecurePrefs.isVoiceEnabled(this) && SecurePrefs.hasVoiceTemplates(this)
-        b.appointmentButton.visibility = if (ready) android.view.View.VISIBLE else android.view.View.GONE
-        if (!ready) return
-        val until = SecurePrefs.getAppointmentUntil(this)
-        if (until > System.currentTimeMillis()) {
-            val h = SimpleDateFormat("HH:mm", Locale.ITALY).format(Date(until))
-            b.appointmentButton.text = getString(R.string.appointment_active, h)
-        } else {
-            b.appointmentButton.text = getString(R.string.main_appointment)
-        }
-    }
-
-    private fun onAppointment() {
-        val until = SecurePrefs.getAppointmentUntil(this)
-        if (until > System.currentTimeMillis()) {
-            SecurePrefs.setAppointmentUntil(this, 0)
-            ProtectionService.trySend(this, ProtectionService.ACTION_APPOINTMENT)
-            toast("Modalità appuntamento fermata.")
-            refresh()
-            return
-        }
-        if (!SecurePrefs.isArmed(this)) { toast("Attiva prima la protezione."); return }
-        val labels = arrayOf(getString(R.string.appointment_1h), getString(R.string.appointment_2h), getString(R.string.appointment_4h))
-        MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.appointment_pick)
-            .setItems(labels) { _, which ->
-                val minutes = Config.APPOINTMENT_DURATIONS_MIN[which]
-                SecurePrefs.setAppointmentUntil(this, System.currentTimeMillis() + minutes * 60_000L)
-                ProtectionService.trySend(this, ProtectionService.ACTION_APPOINTMENT)
-                toast("Modalità appuntamento attiva per ${if (minutes < 120) "1 ora" else "${minutes/60} ore"}.")
-                refresh()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun renderChecks() {
@@ -167,20 +152,24 @@ class MainActivity : AppCompatActivity() {
         row(if (Perms.hasEssentials(this)) Level.OK else Level.BAD, "Permessi: SMS, posizione, microfono, notifiche")
         row(if (Perms.hasBackgroundLocation(this)) Level.OK else Level.WARN, "Posizione \"Consenti sempre\"")
         row(if (BatteryHelper.isIgnoring(this)) Level.OK else Level.BAD, "Escluso dal risparmio energetico")
-        val acc = SecurePrefs.getDriveAccount(this)
-        row(if (SecurePrefs.isDriveOk(this)) Level.OK else Level.BAD,
-            if (SecurePrefs.isDriveOk(this)) "Google Drive collegato" + (acc?.let { " ($it)" } ?: "") else "Google Drive non collegato")
+        val mail = SecurePrefs.getMailAddress(this)
+        row(if (SecurePrefs.isMailOk(this)) Level.OK else Level.BAD,
+            if (SecurePrefs.isMailOk(this)) "Prove per email a $mail" else "Email delle prove non configurata")
         row(if (Perms.hasScreenLock(this)) Level.OK else Level.WARN, "Blocco schermo del telefono")
-        val accOk = com.mialifeapp.core.VolumeKeyService.isEnabled(this)
+        val accOk = VolumeKeyService.isEnabled(this)
         run {
-            val tv = android.widget.TextView(this)
+            val tv = TextView(this)
             tv.textSize = 15f; tv.setPadding(0, dp(7), 0, dp(7))
-            tv.status(if (accOk) Level.OK else Level.WARN, if (accOk) "Tasto volume attivo (anche a schermo spento)" else "Tasto volume: tocca per attivarlo (accessibilità)")
+            tv.status(if (accOk) Level.OK else Level.BAD, if (accOk) "Tasti volume attivi (anche a schermo spento)" else "Tasti volume spenti: tocca per attivarli (Accessibilità)")
             if (!accOk) tv.setOnClickListener {
-                try { startActivity(android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) } catch (_: Exception) {}
+                try { startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) } catch (_: Exception) {}
             }
             box.addView(tv)
         }
+        val bt = SecurePrefs.getBtName(this)
+        if (bt != null) row(if (accOk) Level.OK else Level.WARN, "Pulsante Bluetooth: $bt")
+        if (SecurePrefs.isVoiceEnabled(this) && SecurePrefs.hasVoiceTemplates(this))
+            row(Level.OK, "Frase vocale pronta (ascoltata solo durante l'allerta)")
         val q = SmsHelper.queueSize(this)
         if (q > 0) row(Level.WARN, "SMS in attesa di linea: $q")
     }
@@ -204,7 +193,7 @@ class MainActivity : AppCompatActivity() {
         if (!Pin.hasPin(this)) m += "PIN"
         if (!Perms.hasEssentials(this)) m += "permessi"
         if (!BatteryHelper.isIgnoring(this)) m += "esclusione dal risparmio energetico"
-        if (!SecurePrefs.isDriveOk(this) && !BuildConfig.DEBUG) m += "Google Drive"
+        if (!SecurePrefs.isMailOk(this) && !BuildConfig.DEBUG) m += "email delle prove"
         return m
     }
 
@@ -225,11 +214,19 @@ class MainActivity : AppCompatActivity() {
                 .show()
             return
         }
-        SecurePrefs.setArmed(this, true)
-        if (!ProtectionService.trySend(this, ProtectionService.ACTION_ALERT)) toast("Impossibile avviare la protezione: riprova.")
-        refresh()
-        handler.postDelayed(refreshLater, 800)
+        val choices = Config.ALERT_DURATIONS_MIN
+        val labels = choices.map { durationLabel(it) }.toTypedArray()
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.alert_pick)
+            .setItems(labels) { _, which ->
+                if (!ProtectionService.trySend(this, ProtectionService.ACTION_ALERT, choices[which])) toast("Impossibile avviare l'allerta: riprova.")
+                handler.postDelayed(refreshLater, 800)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
+
+    private fun durationLabel(min: Int) = if (min < 60) "$min minuti" else if (min == 60) "1 ora" else "${min / 60} ore"
 
     private fun disarm() {
         PinDialog.show(this) { r ->
@@ -237,6 +234,7 @@ class MainActivity : AppCompatActivity() {
                 PinResult.REAL -> {
                     EmergencyControl.stopWithRealPin(this)
                     SecurePrefs.setArmed(this, false)
+                    SecurePrefs.setAlertUntil(this, 0)
                     ProtectionService.trySend(this, ProtectionService.ACTION_DISARM)
                     refresh()
                     handler.postDelayed(refreshLater, 800)
