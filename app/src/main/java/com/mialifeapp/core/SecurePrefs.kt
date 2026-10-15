@@ -95,6 +95,24 @@ object SecurePrefs {
     fun isArmed(c: Context) = getBool(c, "armed")
     fun setArmed(c: Context, v: Boolean) = putBool(c, "armed", v)
 
+    /** Fase 1: "allerta" attivata dall'utente (telefono in guardia, nessun invio ancora). */
+    fun isAlert(c: Context) = getBool(c, "alert")
+    fun setAlert(c: Context, v: Boolean) = putBool(c, "alert", v)
+
+    /** Scadenza automatica dell'allerta (ms); 0 = nessuna. */
+    fun getAlertUntil(c: Context) = getLong(c, "alert_until")
+    fun setAlertUntil(c: Context, t: Long) = putStr(c, "alert_until", if (t > 0) t.toString() else null)
+
+    /** Avvisi e consigli accettati: versione accettata (0 = mai). */
+    fun getConsentVersion(c: Context) = getStr(c, "consent")?.toIntOrNull() ?: 0
+    fun setConsentVersion(c: Context, v: Int) = putStr(c, "consent", v.toString())
+
+    /** Sequenze del tasto volume: "d"=giù, "u"=su. Allerta e Aiuto. */
+    fun getVolAlertSeq(c: Context) = getStr(c, "vol_alert") ?: "dddd"
+    fun setVolAlertSeq(c: Context, v: String) = putStr(c, "vol_alert", v)
+    fun getVolHelpSeq(c: Context) = getStr(c, "vol_help") ?: "uuuu"
+    fun setVolHelpSeq(c: Context, v: String) = putStr(c, "vol_help", v)
+
     fun isEmergencyActive(c: Context) = getBool(c, "emergency")
     fun setEmergencyActive(c: Context, v: Boolean) = putBool(c, "emergency", v)
 

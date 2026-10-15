@@ -42,6 +42,8 @@ class ProtectionService : Service() {
         const val ACTION_COERCED = "com.mialifeapp.COERCED"
         const val ACTION_RELOAD = "com.mialifeapp.RELOAD"
         const val ACTION_APPOINTMENT = "com.mialifeapp.APPOINTMENT"
+        const val ACTION_ALERT = "com.mialifeapp.ALERT"   // Fase 1: allerta
+        const val ACTION_HELP = "com.mialifeapp.HELP"     // Fase 2: aiuto
 
         @Volatile var running = false
             private set
@@ -91,6 +93,11 @@ class ProtectionService : Service() {
                 SecurePrefs.setArmed(this, false)
                 SecurePrefs.setFakeDisarmed(this, false)
             }
+            ACTION_ALERT -> {
+                SecurePrefs.setArmed(this, true)
+                SecurePrefs.setFakeDisarmed(this, false)
+            }
+            ACTION_HELP -> if (!SecurePrefs.isEmergencyActive(this)) startEmergency(coerced = false)
             ACTION_STOP_EMERGENCY -> stopEmergency()
             ACTION_COERCED -> coerced()
             ACTION_RELOAD -> { listener?.stop(); listener = null } // riparte sotto con sequenza e sensibilità nuove

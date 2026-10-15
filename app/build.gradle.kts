@@ -11,8 +11,8 @@ android {
         applicationId = "com.mialifeapp"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "2.7"
+        versionCode = 8
+        versionName = "3.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

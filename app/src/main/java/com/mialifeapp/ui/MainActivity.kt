@@ -67,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         // se la protezione è attiva ma ridotta o spenta, la riattiviamo completamente.
         if (SecurePrefs.isArmed(this) && (!ProtectionService.running || ProtectionService.degraded) &&
             Perms.hasEssentials(this)) {
-            ProtectionService.trySend(this, ProtectionService.ACTION_ARM)
+            ProtectionService.trySend(this, ProtectionService.ACTION_ALERT)
         }
         refresh()
         handler.postDelayed(refreshLater, 800)
@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                 b.armButton.text = getString(R.string.main_arm)
             }
             Shown.ON -> {
-                b.stateTitle.text = "●  " + getString(R.string.main_armed)
+                b.stateTitle.text = "●  " + getString(R.string.phase_alert)
                 b.stateSub.text = getString(R.string.main_armed_sub)
                 b.armButton.text = getString(R.string.main_disarm)
             }
@@ -171,6 +171,16 @@ class MainActivity : AppCompatActivity() {
         row(if (SecurePrefs.isDriveOk(this)) Level.OK else Level.BAD,
             if (SecurePrefs.isDriveOk(this)) "Google Drive collegato" + (acc?.let { " ($it)" } ?: "") else "Google Drive non collegato")
         row(if (Perms.hasScreenLock(this)) Level.OK else Level.WARN, "Blocco schermo del telefono")
+        val accOk = com.mialifeapp.core.VolumeKeyService.isEnabled(this)
+        run {
+            val tv = android.widget.TextView(this)
+            tv.textSize = 15f; tv.setPadding(0, dp(7), 0, dp(7))
+            tv.status(if (accOk) Level.OK else Level.WARN, if (accOk) "Tasto volume attivo (anche a schermo spento)" else "Tasto volume: tocca per attivarlo (accessibilità)")
+            if (!accOk) tv.setOnClickListener {
+                try { startActivity(android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)) } catch (_: Exception) {}
+            }
+            box.addView(tv)
+        }
         val q = SmsHelper.queueSize(this)
         if (q > 0) row(Level.WARN, "SMS in attesa di linea: $q")
     }
@@ -181,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         when (shownState()) {
             Shown.OFF -> arm()
             Shown.REDUCED -> {
-                if (!ProtectionService.trySend(this, ProtectionService.ACTION_ARM)) toast("Impossibile avviare: riprova.")
+                if (!ProtectionService.trySend(this, ProtectionService.ACTION_ALERT)) toast("Impossibile avviare: riprova.")
                 handler.postDelayed(refreshLater, 800)
             }
             Shown.ON -> disarm()
@@ -216,7 +226,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
         SecurePrefs.setArmed(this, true)
-        if (!ProtectionService.trySend(this, ProtectionService.ACTION_ARM)) toast("Impossibile avviare la protezione: riprova.")
+        if (!ProtectionService.trySend(this, ProtectionService.ACTION_ALERT)) toast("Impossibile avviare la protezione: riprova.")
         refresh()
         handler.postDelayed(refreshLater, 800)
     }

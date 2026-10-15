@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">MiaLifeApp</string>
+    <!-- Nome mostrato sotto l'icona (camuffamento): non deve sembrare un'app SOS -->
+    <string name="launcher_name">Bolle</string>
+    <string name="acc_description">Permette di usare i tasti del volume come gesto di emergenza, anche a schermo spento. MiaLifeApp non legge lo schermo né i tuoi dati: ascolta solo le sequenze del volume che hai scelto.</string>
 
     <!-- Benvenuto -->
     <string name="welcome_title">Ciao, sono MiaLifeApp</string>
@@ -152,4 +155,9 @@ Registra la frase 5 volte, possibilmente in modi diversi (voce normale, voce bas
     <string name="coercion_code_title">Messaggio in codice (consigliato)</string>
     <string name="coercion_code_body">Gli SMS inviati restano nella cartella \"Inviati\" del telefono: chi ti costringe potrebbe leggerli. Scrivi qui una frase normale concordata PRIMA con i tuoi contatti (per esempio \"Stasera porto io il dolce\"). In coercizione l\'app manderà solo questa frase con il link della posizione, niente \"AIUTO\". Lascia vuoto per usare il messaggio esplicito.</string>
     <string name="coercion_code_hint">Frase in codice concordata con i contatti</string>
+
+    <!-- Due fasi -->
+    <string name="phase_rest">A riposo</string>
+    <string name="phase_alert">Allerta attiva</string>
+    <string name="phase_help">Richiesta di aiuto in corso</string>
 </resources>

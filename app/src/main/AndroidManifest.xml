@@ -49,6 +49,9 @@
         <activity
             android:name=".ui.WelcomeActivity"
             android:exported="true"
+            android:icon="@mipmap/ic_launcher_game"
+            android:roundIcon="@mipmap/ic_launcher_game_round"
+            android:label="@string/launcher_name"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -84,6 +87,19 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Ascolto del gesto di emergenza scelto dall'utente (sequenza di colpetti) per un'app di sicurezza personale; usato dopo il riavvio del telefono, quando microfono e posizione non sono ancora concessi." />
+        </service>
+
+        <service
+            android:name=".core.VolumeKeyService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:label="@string/launcher_name">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
         </service>
 
         <receiver

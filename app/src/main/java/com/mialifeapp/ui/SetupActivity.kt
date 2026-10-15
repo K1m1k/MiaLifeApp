@@ -32,7 +32,6 @@ import com.mialifeapp.core.TapRecorder
 import com.mialifeapp.core.drive.DriveAuth
 import com.mialifeapp.core.drive.DriveUploader
 import com.mialifeapp.databinding.ActivitySetupBinding
-import com.mialifeapp.core.voice.Mfcc
 import com.mialifeapp.core.voice.VoiceEngine
 import com.mialifeapp.core.voice.VoiceEnroll
 import java.util.concurrent.Executors
@@ -273,7 +272,53 @@ class SetupActivity : AppCompatActivity() {
         return null
     }
 
+    private val consentVersion = 1
+
     private fun complete() {
+        if (fake || SecurePrefs.getConsentVersion(this) >= consentVersion) { finishSetup(); return }
+        showConsent()
+    }
+
+    /** Pagina finale obbligatoria: avvisi e consigli, con spunta. */
+    private fun showConsent() {
+        val msg = """Prima di usare l'app, leggi e accetta:
+
+• MiaLifeApp PUÒ NON FUNZIONARE: per guasti, limiti del telefono, batteria scarica, mancanza di rete o impostazioni del produttore. Non è infallibile.
+
+• NON sostituisce il 112 né le forze dell'ordine. Se sei in pericolo chiama il 112. Per la violenza contro le donne c'è il 1522, gratuito e attivo 24 ore su 24.
+
+• Prima di un incontro, avvisa una persona di fiducia: dove vai, con chi e a che ora pensi di rientrare.
+
+• Scegli come contatti solo persone affidabili e avvisale che le hai scelte.
+
+• Rifai la prova completa ogni tanto e dopo ogni aggiornamento del telefono.
+
+• Usa le registrazioni nel rispetto della legge e dei diritti delle altre persone.
+
+Toccando "Accetto" dichiari di aver letto e compreso questi avvisi."""
+        val box = android.widget.ScrollView(this)
+        val inner = android.widget.LinearLayout(this).apply { orientation = android.widget.LinearLayout.VERTICAL; setPadding(dp(24), dp(12), dp(24), 0) }
+        val tv = android.widget.TextView(this).apply { text = msg; textSize = 15f; setTextColor(0xFF211E3B.toInt()) }
+        val cb = com.google.android.material.checkbox.MaterialCheckBox(this).apply { text = "Ho letto e accetto gli avvisi e i consigli"; setPadding(0, dp(12), 0, 0) }
+        inner.addView(tv); inner.addView(cb); box.addView(inner)
+        val d = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("Avvisi e consigli importanti")
+            .setView(box)
+            .setCancelable(false)
+            .setPositiveButton("Accetto", null)
+            .setNegativeButton(R.string.cancel, null)
+            .create()
+        d.setOnShowListener {
+            d.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                if (!cb.isChecked) { toast("Spunta la casella per accettare."); return@setOnClickListener }
+                SecurePrefs.setConsentVersion(this, consentVersion)
+                d.dismiss(); finishSetup()
+            }
+        }
+        d.show()
+    }
+
+    private fun finishSetup() {
         if (!fake) {
             SecurePrefs.setOnboarded(this, true)
             if (SecurePrefs.isArmed(this)) ProtectionService.trySend(this, ProtectionService.ACTION_RELOAD)
